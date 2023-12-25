@@ -1,0 +1,12 @@
+class: card(:name, :description, :drawn, :playable, :play, :discard, :remove)
+
+class: game(:draw, :hand, :discard, :counters, :modifiers, init is; Game) do
+	Game:draw := []
+	Game:hand := []
+	Game:discard := []
+	Game:counters := {}
+	Game:modifiers := []
+end
+
+meth :add_draw(Game: game, Card: card) do
+end
