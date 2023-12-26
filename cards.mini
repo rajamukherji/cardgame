@@ -1,0 +1,69 @@
+fun current(Name) do
+end
+
+fun increase(Name, Value) do
+end
+
+fun decrease(Name, Value) do
+end
+
+fun progress(Goal, Index) do
+end
+
+class: card(:details)
+
+meth ::(Card: card, Detail: string) Card:details[Detail]
+
+meth :name(Card: card) type(Card):name:title
+meth :description(Card: card) 'A {type(Card):name}.'
+meth :drawn(Card: card) nil
+meth :playable(Card: card) nil
+meth :play(Card: card) nil
+meth :discard(Card: card) nil
+meth :remove(Card: card) nil
+
+class: task(card)
+meth :name(Card: task) 'Task ({Card::Cost})'
+meth :description(Card: task) 'A task requiring {Card::Cost} energy.'
+meth :playable(Card: task) Card::Cost <= current("energy")
+meth :play(Card: task) do
+	decrease("energy", Card::Cost)
+	progress(Card::Goal, Card::Index)
+end
+
+class: project(card)
+meth :name(Card: project) 'Project ({Project::Type})'
+meth :description(Card: project) 'A {Project::Type:lower}-sized project.'
+meth :playable(Card: project) Card::Cost <= current("energy")
+meth :play(Card: project) do
+	decrease("energy", Card::Cost)
+	let NumTasks := `["Tiny", "Small", "Medium", "Big", "Huge"]`:find(Project::Type)
+	let Project := sum(1 .. 8;) "ABCDEFGHIJKLMNOPQRSTUVWXYZ":random
+	let Tasks := list(1 .. NumTasks; I) do
+		discard(task({"Cost" is 1, "Goal" is Name, "Index" is I}))
+	end
+	goal(Project, set(1 .. NumTasks); Goal) do
+		
+	end
+end
+
+
+let TaskCard := {
+	"name" is fun "Task",
+	"description" is fun "Task",
+	"drawn" is fun(Card, Reason) do
+	end,
+	"playable" is fun(Card) do
+	end,
+	"play" is fun(Card) do
+	end,
+	"discard" is fun(Card, Reason) do
+	end,
+	"remove" is fun(Card, Reason) do
+	end
+}
+
+let ProjectCard := {
+	"name" is fun "Project",
+	"description" is fun "Project",
+	"drawn" is fun
