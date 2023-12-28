@@ -99,7 +99,7 @@ end
 export: class: demo(card)
 meth :name(Card: demo) 'Demo ({Card::Value})'
 meth :description(Card: demo) 'A demo generating {Card::Value} influence.'
-meth :playable(Card: demo) some(Hand, _ in bigshot)
+meth :playable(Card: demo) some(Hand, _ in (bigshot | customer))
 meth :play(Card: demo) do
 	let Other := choose(Hand ->? fun(Card) Card in (bigshot | customer))
 	switch Other: type
