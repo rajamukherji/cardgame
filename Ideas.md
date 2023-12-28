@@ -77,6 +77,9 @@
 * Coffee
    * Adds **time** to do work
 
+* Mandatory Training
+   * Can block **tasks** being completed
+
 ## Gameplay
 
 At any stage, the **deck** is divided into 3 lists of cards

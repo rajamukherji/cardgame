@@ -1,69 +1,134 @@
-fun current(Name) do
-end
+def (
+	DrawPile, Hand, DiscardPile, Modifiers, Counters, Goals,
+	card, current, increase, decrease, goal, progress, discard, remove, choose
+) in import("game")
 
-fun increase(Name, Value) do
-end
-
-fun decrease(Name, Value) do
-end
-
-fun progress(Goal, Index) do
-end
-
-class: card(:details)
-
-meth ::(Card: card, Detail: string) Card:details[Detail]
-
-meth :name(Card: card) type(Card):name:title
-meth :description(Card: card) 'A {type(Card):name}.'
-meth :drawn(Card: card) nil
-meth :playable(Card: card) nil
-meth :play(Card: card) nil
-meth :discard(Card: card) nil
-meth :remove(Card: card) nil
-
-class: task(card)
-meth :name(Card: task) 'Task ({Card::Cost})'
-meth :description(Card: task) 'A task requiring {Card::Cost} energy.'
+export: class: task(card)
+meth :name(Card: task) 'Task ({Card::Cost}/{Card::Skill})'
+meth :description(Card: task) 'A task requiring {Card::Cost} energy and {Card::Skill} skill.'
 meth :playable(Card: task) Card::Cost <= current("energy")
 meth :play(Card: task) do
 	decrease("energy", Card::Cost)
+	remove(Card)
+end
+meth :remove(Card: task) do
 	progress(Card::Goal, Card::Index)
 end
 
-class: project(card)
-meth :name(Card: project) 'Project ({Project::Type})'
-meth :description(Card: project) 'A {Project::Type:lower}-sized project.'
+export: class: developer(card)
+meth :name(Card: developer) 'Developer ({Card::Skill})'
+meth :description(Card: developer) 'A developer with {Card::Skill} skill.'
+meth :playable(Card: developer) 1
+meth :play(Card: developer) do
+	let Skill := Card::Skill + (current("energy") min 2)
+	let Task := choose(Hand ->? fun(Card) Card in task and Card::Skill <= Skill)
+	if Task then
+		let Cost := Task::Skill - Card::Skill
+		if Cost > 0 then
+			decrease("energy", Cost)
+			Card::Skill := old + 1
+		end 
+		progress(Task::Goal, Task::Index)
+		remove(Task)
+	end
+	discard(Card)
+end
+
+export: class: solution(card)
+meth :name(Card: solution) 'Solution ({Card::Value})'
+meth :description(Card: solution) 'A solution generating {Card::Value} value.'
+meth :playable(Card: solution) 1
+meth :play(Card: solution) do
+	increase("value", Card::Value)
+	discard(Card)
+end
+
+export: class: project(card)
+meth :name(Card: project) 'Project ({Card::Size})'
+meth :description(Card: project) 'A project of value {Card::Size}.'
 meth :playable(Card: project) Card::Cost <= current("energy")
 meth :play(Card: project) do
 	decrease("energy", Card::Cost)
-	let NumTasks := `["Tiny", "Small", "Medium", "Big", "Huge"]`:find(Project::Type)
 	let Project := sum(1 .. 8;) "ABCDEFGHIJKLMNOPQRSTUVWXYZ":random
-	let Tasks := list(1 .. NumTasks; I) do
-		discard(task({"Cost" is 1, "Goal" is Name, "Index" is I}))
+	let Tasks := list(1 .. Card::Size; I) do
+		discard(task({"Cost" is 1, "Skill" is 3, "Goal" is Project, "Index" is I}))
 	end
-	goal(Project, set(1 .. NumTasks); Goal) do
-		
+	goal(Project, set(1 .. Card::Size); Goal) do
+		discard(solution({"Value" is Card::Size}))
+	end
+	remove(Card)
+end
+
+export: class: meeting(card)
+meth :name(Card: meeting) 'Training ({Card::Cost})'
+meth :description(Card: meeting) 'Recurring meeting requiring {Card::Cost} energy.'
+meth :playable(Card: meeting) Card::Cost <= current("energy")
+meth :play(Card: meeting) do
+	discard(Card)
+end
+
+export: class: training(card)
+meth :name(Card: training) 'Training ({Card::Cost})'
+meth :description(Card: training) 'Mandatory training requiring {Card::Cost} energy.'
+meth :playable(Card: training) Card::Cost <= current("energy")
+meth :play(Card: training) do
+	remove(Card)
+end
+meth :blocks(Card: training, Other: card) Other in task
+
+export: class: bigshot(card)
+meth :name(Card: bigshot) 'Bigshot ({Card::Cost})'
+meth :description(Card: bigshot) 'Visiting bigshot requires meeting costing {Card::Cost} energy or demo.'
+meth :playable(Card: bigshot) Card::Cost <= current("energy")
+meth :play(Card: bigshot) do
+	decrease("energy", Card::Cost)
+	discard(Card)
+end
+meth :blocks(Card: bigshot, Other: card) not Other in (demo | bigshot | solution)
+
+export: class: customer(card)
+meth :name(Card: customer) 'Customer ({Card::Cost}/{Card::Value})'
+meth :description(Card: customer) 'Customer that can generate ideas of value {Card::Value}.'
+meth :playable(Card: customer) Card::Cost <= current("energy")
+meth :play(Card: customer) do
+	decrease("energy", Card::Cost)
+	discard(idea({"Cost" is 1, "Size" is Card::Value}))
+	discard(Card)
+end
+
+export: class: demo(card)
+meth :name(Card: demo) 'Demo ({Card::Value})'
+meth :description(Card: demo) 'A demo generating {Card::Value} influence.'
+meth :playable(Card: demo) some(Hand, _ in bigshot)
+meth :play(Card: demo) do
+	let Other := choose(Hand ->? fun(Card) Card in (bigshot | customer))
+	switch Other: type
+	case bigshot do
+		increase("influence", Card::Value)
+		remove(Card)
+		discard(Other)
+	case customer do
+		remove(Card)
+		discard(Other)
+		discard(project({"Cost" is 1, "Size" is Card::Value}))
 	end
 end
 
-
-let TaskCard := {
-	"name" is fun "Task",
-	"description" is fun "Task",
-	"drawn" is fun(Card, Reason) do
-	end,
-	"playable" is fun(Card) do
-	end,
-	"play" is fun(Card) do
-	end,
-	"discard" is fun(Card, Reason) do
-	end,
-	"remove" is fun(Card, Reason) do
+export: class: idea(card)
+meth :name(Card: idea) 'Idea ({Card::Size})'
+meth :description(Card: idea) 'A {Card::Size}-sized idea.'
+meth :playable(Card: idea) Card::Cost <= current("energy")
+meth :play(Card: idea) do
+	decrease("energy", Card::Cost)
+	let Idea := sum(1 .. 8;) "ABCDEFGHIJKLMNOPQRSTUVWXYZ":random
+	let Tasks := list(1 .. Card::Size; I) do
+		discard(task({"Cost" is 1, "Skill" is 3, "Goal" is Idea, "Index" is I}))
 	end
-}
+	goal(Idea, set(1 .. Card::Size); Goal) do
+		discard(demo({"Value" is Card::Size}))
+	end
+	remove(Card)
+end
 
-let ProjectCard := {
-	"name" is fun "Project",
-	"description" is fun "Project",
-	"drawn" is fun
+
+

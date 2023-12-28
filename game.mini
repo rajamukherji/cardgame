@@ -1,0 +1,83 @@
+export: let DrawPile := []
+export: let Hand := []
+export: let DiscardPile := []
+export: let Modifiers := []
+export: let Counters := {}
+export: let Goals := {}
+
+class: blocker(:type)
+
+export: class: card(:details)
+
+meth ::(Card: card, Detail: string) Card:details[Detail]
+
+meth :name(Card: card) type(Card):name:title
+meth :description(Card: card) 'A {type(Card):name}.'
+meth :drawn(Card: card) nil
+meth :blocks(Card: card, Other: card) nil
+meth :playable(Card: card) nil
+meth :play(Card: card) nil
+meth :discard(Card: card) nil
+meth :remove(Card: card) nil
+
+export: fun playable(Card) do
+	for Modifier in Modifiers do
+		if Modifier in blocker and Card in Modifier:type then
+			ret nil
+		end
+	end
+	for Other in Hand do
+		if Other:blocks(Card) then
+			ret nil
+		end
+	end
+	ret Card:playable
+end
+
+export: fun played(Card) do
+	
+end
+
+export: fun current(Name) Counters[Name]
+
+export: fun increase(Name, Value) do
+	:> TODO: Check for modifiers
+	Counters[Name] := old + Value
+end
+
+export: fun decrease(Name, Value) do
+	:> TODO: Check for modifiers
+	Counters[Name] := old - Value
+end
+
+export: fun goal(Name, Tasks, Action) do
+	Goals[Name] := (Tasks, Action)
+end
+
+export: fun progress(Name, Index) do
+	let Goal := Goals[Name] or error("NameError", 'Unknown goal: {Name}')
+	Goal[1]:delete(Index)
+	if Goal[1]:size = 0 then
+		Goals:delete(Name)
+		Goal[2]()
+	end
+end
+
+export: fun discard(Card) do
+	:> TODO: Check for modifiers
+	DrawPile:filter(_ != Card)
+	Hand:filter(_ != Card)
+	DiscardPile:put(Card)
+	Card:discard
+end
+
+export: fun remove(Card) do
+	:> TODO: Check for modifiers
+	DrawPile:filter(_ != Card)
+	Hand:filter(_ != Card)
+	DiscardPile:filter(_ != Card)
+	Card:remove
+end
+
+export: var choose
+

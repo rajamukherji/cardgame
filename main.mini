@@ -1,12 +1,77 @@
-class: card(:name, :description, :drawn, :playable, :play, :discard, :remove)
+def (Stdin, Stdout) in import("io/terminal")
+def (
+	DrawPile, Hand, DiscardPile, Modifiers, Counters, Goals, 
+	playable, discard, choose
+) in import("game")
+import: cards("cards")
 
-class: game(:draw, :hand, :discard, :counters, :modifiers, init is; Game) do
-	Game:draw := []
-	Game:hand := []
-	Game:discard := []
-	Game:counters := {}
-	Game:modifiers := []
+random::seed(time():nsec)
+
+Counters["influence"] := 0
+Counters["value"] := 0
+Counters["daily_energy"] := 4
+Counters["draw_count"] := 4
+
+DrawPile:put(
+	cards::project({"Size" is 3, "Cost" is 1}),
+	cards::developer({"Skill" is 1}),
+	cards::training({"Cost" is 1}),
+	cards::bigshot({"Cost" is 1}),
+	cards::customer({"Cost" is 2, "Value" is 3})
+)
+DrawPile:shuffle
+
+choose := fun(Cards0) do
+	let Cards := list(Cards0)
+	Cards:length > 0 or ret nil
+	Stdout:write('Choose a card:\n')
+	for I, Card in Cards do
+		Stdout:write('  {I}: {Card:name} - {Card:description}\n')
+	end
+	loop
+		Stdout:write("Choice: ")
+		let Index := integer(Stdin:read:trim)
+		if Index = 0 then
+			ret nil
+		elseif let Card := Cards[Index] then
+			Stdout:write('Choosing {Index} -> {Card}\n')
+			ret Card
+		end
+	on Error do
+		Stdout:write('Error: {Error}\n')
+	end
 end
 
-meth :add_draw(Game: game, Card: card) do
+for Day in 1:up do
+	Stdout:write('\n\e[32mStarting day {Day} ...\e[0m\n')
+	Counters["energy"] := Counters["draw_count"]
+	for I in 1 .. Counters["draw_count"] do
+		let Card := while DrawPile:pop
+		Hand:put(Card)
+	end
+	loop
+		for Counter, Value in Counters do
+			Stdout:write('{Counter}: {Value}\n')
+		end
+		if let Card := choose(Hand) then
+			if playable(Card) then
+				Stdout:write('Playing {Card}\n')
+				Card:play
+			else
+				Stdout:write('Card cannot be played\n')
+			end
+		else
+			loop
+				discard(while Hand[1])
+			end
+			if DrawPile:length = 0 then
+				DrawPile:grow(DiscardPile)
+				DrawPile:shuffle
+				DiscardPile:empty
+			end
+			exit
+		end
+	on Error do
+		Stdout:write('Error: {Error}\n')
+	end
 end
