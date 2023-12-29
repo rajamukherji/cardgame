@@ -1,7 +1,7 @@
 def (Stdin, Stdout) in import("io/terminal")
 def (
 	DrawPile, Hand, DiscardPile, Modifiers, Counters, Goals, 
-	playable, draw, discard, choose, display, start
+	playable, draw, discard, choose, display, event, start
 ) in import("game")
 import: cards("cards")
 
@@ -57,6 +57,7 @@ choose := fun(Seq, CostFn := 0) do
 	for I, Card in Cards do
 		Stdout:write('  {I, "% 2d"}: \e[4m{Card:name} \e[32m({CostFn(Card) or ""})\e[0m\n      {Card:description}\n')
 	end
+	Stdout:write('  {0, "% 2d"}: \e[31mCancel or Skip\e[0m\n')
 	Stdout:write("\n")
 	loop
 		Stdout:write("Choice: ")
@@ -74,13 +75,19 @@ end
 
 display := Stdout:write(_)
 
+let Events := []
+event := Events:put(_)
+
 start(
-	fun(Day) do
-		Stdout:write('\n\e[32mDay {Day}\e[0m\n')
+	fun(Day) do	
 		Counters["energy"] := Counters["draw_count"]
 	end,
 	fun(Day) do
-		Stdout:write('\nValue: \e[32m{Counters["value"]}\e[0m    Influence: \e[32m{Counters["influence"]}\e[0m\n')
+		Stdout:write('\e[2J\e[H\e[32mDay {Day}\e[0m Value: \e[32m{Counters["value"]}\e[0m    Influence: \e[32m{Counters["influence"]}\e[0m\n')
+		for Event in Events do
+			Stdout:write(Event, "\n")
+		end
+		Events:empty
 		Stdout:write('[\e[33m{DrawPile:length}\e[0m] - \e[32m{sum(@"☕" limit Counters["energy"])}\e[0m - [\e[33m{DiscardPile:length}\e[0m]\n\n')
 	end
 )
