@@ -83,11 +83,12 @@ start(
 		Counters["energy"] := Counters["draw_count"]
 	end,
 	fun(Day) do
-		Stdout:write('\e[2J\e[H\e[32mDay {Day}\e[0m Value: \e[32m{Counters["value"]}\e[0m    Influence: \e[32m{Counters["influence"]}\e[0m\n')
-		for Event in Events do
-			Stdout:write(Event, "\n")
+		Stdout:write('\e[2J\e[H\e[32mDay {Day}\e[0m - Value: \e[32m{Counters["value"]}\e[0m, Influence: \e[32m{Counters["influence"]}\e[0m')
+		Stdout:write(', [\e[33m{DrawPile:length} / {DiscardPile:length}\e[0m]\n\n\e[32m{sum(@" ☕" limit Counters["energy"])}\e[0m \n\n')
+		if Events:length > 0 then
+			each Events -> Stdout:write(_, "\n")
+			Stdout:write("\n")
+			Events:empty
 		end
-		Events:empty
-		Stdout:write('[\e[33m{DrawPile:length}\e[0m] - \e[32m{sum(@"☕" limit Counters["energy"])}\e[0m - [\e[33m{DiscardPile:length}\e[0m]\n\n')
 	end
 )

@@ -206,19 +206,18 @@ end
 
 export: class: annoyance(work)
 
-export: class: overhead(annoyance)
+export: class: overhead(annoyance, work)
 meth :name(Card: overhead) '{if Card::Mandatory = true then "Mandatory " else "" end}Overhead'
 meth :description(Card: overhead) 'Overhead requiring {Card::Cost} energy.'
 meth :play(Card: overhead) do
 	decrease("energy", Card::Cost)
 	discard(Card)
 end
-meth :blocks(Card: overhead, Other: card) Card::Mandatory = true and Other in work
+meth :blocks(Card: overhead, Other: card) Card::Mandatory = true and Other in work and not Other in overhead
 
-export: class: practioner(annoyance)
+export: class: practioner(card)
 meth :name(Card: practioner) 'Agile practitioner'
 meth :description(Card: practioner) 'Agile practioner generates overhead when discarded.'
-meth :playable(Card: practioner) nil
 meth :discard(Card: practioner) do
 	discard(overhead({"Cost" is 1, "Influence" is 1, "Mandatory" is random(boolean)}))
 end
@@ -240,6 +239,7 @@ export: class: event(card)
 meth :name(Card: event) 'Event'
 meth :description(Card: event) 'Event.'
 meth :draw(Card: event) do
+	event('\e[34mGenerating events\e[0m - \e[4m{Card:name}\e[0m discarded from hand.')
 	discard(Card)
 	for (Prob, Type, Details) in Card::Events do
 		if random(real) < Prob then
