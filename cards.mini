@@ -1,6 +1,6 @@
 def (
 	DrawPile, Hand, DiscardPile, Modifiers, Counters, Goals,
-	card, current, increase, decrease, goal, progress, draw, discard, remove, choose
+	card, current, increase, decrease, goal, progress, draw, discard, remove, choose, log
 ) in import("game")
 
 export: class: work(card)
@@ -98,7 +98,7 @@ end
 
 export: class: demo(card)
 meth :name(Card: demo) 'Demo-{Card::Value}'
-meth :description(Card: demo) 'A demo generating {Card::Value} influence.'
+meth :description(Card: demo) 'A demo generating {Card::Value} influence / projects.'
 meth :playable(Card: demo) some(Hand, _ in (bigshot | customer))
 meth :play(Card: demo) do
 	let Other := choose(Hand ->? fun(Card) Card in (bigshot | customer))
@@ -116,7 +116,7 @@ end
 
 export: class: idea(work)
 meth :name(Card: idea) 'Idea-{Card::Size}'
-meth :description(Card: idea) 'A {Card::Size}-sized idea.'
+meth :description(Card: idea) 'An idea for a demo that will generate {Card::Size} influence / projects.'
 meth :play(Card: idea) do
 	decrease("energy", Card::Cost)
 	let Idea := sum(1 .. 8;) "ABCDEFGHIJKLMNOPQRSTUVWXYZ":random
@@ -131,7 +131,7 @@ end
 
 export: class: recruiter(card)
 meth :name(Card: recruiter) 'Recruiter'
-meth :description(Card: recruiter) 'A recruiter costing {Card::Cost} influence.'
+meth :description(Card: recruiter) 'A recruiter costing {Card::Cost} influence to add a developer to the deck.'
 meth :playable(Card: recruiter) Card::Cost <= current("influence")
 meth :play(Card: recruiter) do
 	decrease("influence", Card::Cost)
@@ -157,7 +157,7 @@ end
 
 export: class: presentation(work)
 meth :name(Card: presentation) 'Presentation'
-meth :description(Card: presentation) 'A presentation costing {Card::Cost} energy.'
+meth :description(Card: presentation) 'A presentation costing {Card::Cost} energy. Increases the skill of every developer in your hand.'
 meth :playable(Card: presentation) Card::Cost <= current("energy")
 meth :play(Card: presentation) do
 	decrease("energy", Card::Cost)
@@ -169,7 +169,7 @@ end
 
 export: class: plan(work)
 meth :name(Card: plan) 'Plan {Card::Goal:name}'
-meth :decription(Card: plan) 'Plan a {Card::Goal:name}.'
+meth :description(Card: plan) 'Plan a {Card::Goal:name}.'
 meth :play(Card: plan) do
 	decrease("energy", Card::Cost)
 	let Goal := sum(1 .. 8;) "ABCDEFGHIJKLMNOPQRSTUVWXYZ":random
@@ -208,10 +208,11 @@ export: class: annoyance(work)
 
 export: class: overhead(annoyance, work)
 meth :name(Card: overhead) '{if Card::Mandatory = true then "Mandatory " else "" end}Overhead'
-meth :description(Card: overhead) 'Overhead requiring {Card::Cost} energy.'
+meth :description(Card: overhead) 'Overhead requiring {Card::Cost} energy. Draw a card when played.'
 meth :play(Card: overhead) do
 	decrease("energy", Card::Cost)
 	discard(Card)
+	draw()
 end
 meth :blocks(Card: overhead, Other: card) Card::Mandatory = true and Other in work and not Other in overhead
 
@@ -224,7 +225,7 @@ end
 
 export: class: retrospective(card)
 meth :name(Card: retrospective) 'Retrospective'
-meth :description(Card: retrospective) 'Team retrospective.'
+meth :description(Card: retrospective) 'Team retrospective. Uses influence to remove overhead and practioners.'
 meth :playable(Card: retrospective) 1
 meth :play(Card: retrospective) do
 	loop
@@ -239,7 +240,7 @@ export: class: event(card)
 meth :name(Card: event) 'Event'
 meth :description(Card: event) 'Event.'
 meth :draw(Card: event) do
-	event('\e[34mGenerating events\e[0m - \e[4m{Card:name}\e[0m discarded from hand.')
+	log('\e[33mEvent\e[0m \e[4m{Card:name}\e[0m played from hand.')
 	discard(Card)
 	for (Prob, Type, Details) in Card::Events do
 		if random(real) < Prob then

@@ -7,7 +7,7 @@ export: let Goals := {}
 
 export: var choose
 export: var display
-export: var event
+export: var log
 
 class: blocker(:type)
 
@@ -68,10 +68,8 @@ export: fun progress(Name, Index) do
 end
 
 export: fun draw(Card := DrawPile[1]) do
-	if Card and not DrawPile:find(Card) then
-		event('\e[32mAdded\e[0m \e[4m{Card:name}\e[0m to hand.')
-	end
 	if Card then
+		log('\e[32mAdded\e[0m \e[4m{Card:name}\e[0m to hand.')
 		DrawPile:filter(_ != Card)
 		DiscardPile:filter(_ != Card)
 		Hand:put(Card)
@@ -84,7 +82,7 @@ export: fun discard(Card) do
 	:> TODO: Check for modifiers
 	DrawPile:filter(_ != Card)
 	if Hand:filter(_ != Card):length = 0 then
-		event('\e[32mAdded\e[0m \e[4m{Card:name}\e[0m to discard pile.')
+		log('\e[32mAdded\e[0m \e[4m{Card:name}\e[0m to discard pile.')
 	end
 	DiscardPile:put(Card)
 	Card:discard
@@ -95,7 +93,7 @@ export: fun remove(Card) do
 	DrawPile:filter(_ != Card)
 	Hand:filter(_ != Card)
 	DiscardPile:filter(_ != Card)
-	event('\e[31mRemoving\e[0m \e[4m{Card:name}\e[0m from hand.')
+	log('\e[31mRemoving\e[0m \e[4m{Card:name}\e[0m from hand.')
 	Card:remove
 end
 
@@ -107,12 +105,12 @@ export: fun start(DayFn, TurnFn) do
 		end
 		loop
 			TurnFn(Day)
-			if let Card := choose(Hand, ::Cost) then
+			if let Card := choose(Hand, fun(Card) Card::Cost{} * "●") then
 				if playable(Card) then
 					:>Stdout:write('Playing {Card}\n')
 					Card:play
 				else
-					event('\e[33mBlocked\e[0m \e[4m{Card:name}\e[0m cannot be played at this time.')
+					log('\e[33mBlocked\e[0m \e[4m{Card:name}\e[0m cannot be played at this time.')
 				end
 			else
 				loop

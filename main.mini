@@ -1,7 +1,7 @@
 def (Stdin, Stdout) in import("io/terminal")
 def (
 	DrawPile, Hand, DiscardPile, Modifiers, Counters, Goals, 
-	playable, draw, discard, choose, display, event, start
+	playable, draw, discard, choose, display, log, start
 ) in import("game")
 import: cards("cards")
 
@@ -53,14 +53,36 @@ DrawPile:shuffle
 choose := fun(Seq, CostFn := 0) do
 	let Cards := list(Seq)
 	Cards:length > 0 or ret nil
-	Stdout:write('Choose a card:\n')
+	Stdout:write(' Choose a card:\n')
 	for I, Card in Cards do
-		Stdout:write('  {I, "% 2d"}: \e[4m{Card:name} \e[32m({CostFn(Card) or ""})\e[0m\n      {Card:description}\n')
+		let Cost := CostFn(Card) or ""
+		Stdout:write(' ╭─', 38 * '─', '╮\n')
+		let Number := '{I}:'
+		let Name := Card:name
+		let LeftPadding := 39 - Name:length div 2
+		let RightPadding := 39 - Name:length - LeftPadding
+		Stdout:write(' │\e[32m{Number}\e[0m{LeftPadding - Number:length * " "}\e[4m{Name}\e[0m{RightPadding - Cost:length * " "}\e[31m{Cost}\e[0m│\n')
+		var Description := Card:description
+		loop
+			while Description:length > 36
+			for I in 37 .. 1 by -1 do
+				if Description[I] = " " then
+					Stdout:write(' │  {Description[1, I]}{37 - I * " "} │\n')
+					Description := old[I + 1, 0]
+					exit
+				end
+			else
+				Stdout:write(' │  {Description[1, 37]} │\n')
+				Description := old[37, 0]
+			end
+		end
+		Stdout:write(' │  {Description}{36 - Description:length * " "} │\n')
+		Stdout:write(' ╰─', 38 * '─', '╯\n')
 	end
-	Stdout:write('  {0, "% 2d"}: \e[31mCancel or Skip\e[0m\n')
+	Stdout:write('  \e[32m0\e[0m: Cancel or Skip.\n')
 	Stdout:write("\n")
 	loop
-		Stdout:write("Choice: ")
+		Stdout:write(" Choice: ")
 		let Index := integer(Stdin:read:trim)
 		if Index = 0 then
 			ret nil
@@ -76,17 +98,17 @@ end
 display := Stdout:write(_)
 
 let Events := []
-event := Events:put(_)
+log := Events:put(_)
 
 start(
 	fun(Day) do	
 		Counters["energy"] := Counters["draw_count"]
 	end,
 	fun(Day) do
-		Stdout:write('\e[2J\e[H\e[32mDay {Day}\e[0m - Value: \e[32m{Counters["value"]}\e[0m, Influence: \e[32m{Counters["influence"]}\e[0m')
-		Stdout:write(', [\e[33m{DrawPile:length} / {DiscardPile:length}\e[0m]\n\n\e[32m{sum(@" ☕" limit Counters["energy"])}\e[0m \n\n')
+		Stdout:write('\e[2J\e[H\n\e[32m Day {Day}\e[0m - Value: \e[32m{Counters["value"]}\e[0m, Influence: \e[32m{Counters["influence"]}\e[0m')
+		Stdout:write(', [\e[33m{DrawPile:length} / {DiscardPile:length}\e[0m]\n\n\e[31m{reduce("", @" ●" limit Counters["energy"], +)}\e[0m \n\n')
 		if Events:length > 0 then
-			each Events -> Stdout:write(_, "\n")
+			each Events -> Stdout:write(" ", _, "\n")
 			Stdout:write("\n")
 			Events:empty
 		end
