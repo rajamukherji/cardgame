@@ -5,6 +5,9 @@ export: let Modifiers := []
 export: let Counters := {}
 export: let Goals := {}
 
+export: var choose
+export: var display
+
 class: blocker(:type)
 
 export: class: card(:details)
@@ -13,7 +16,7 @@ meth ::(Card: card, Detail: string) Card:details[Detail]
 
 meth :name(Card: card) type(Card):name:title
 meth :description(Card: card) 'A {type(Card):name}.'
-meth :drawn(Card: card) nil
+meth :draw(Card: card) nil
 meth :blocks(Card: card, Other: card) nil
 meth :playable(Card: card) nil
 meth :play(Card: card) nil
@@ -63,10 +66,25 @@ export: fun progress(Name, Index) do
 	end
 end
 
+export: fun draw(Card := DrawPile[1]) do
+	if not DrawPile:find(Card) then
+		display('\e[32mAdded\e[0m \e[4m{Card:name}\e[0m to hand.\n')
+	end
+	if Card then
+		DrawPile:filter(_ != Card)
+		DiscardPile:filter(_ != Card)
+		Hand:put(Card)
+		Card:draw
+	end
+	ret Card
+end
+
 export: fun discard(Card) do
 	:> TODO: Check for modifiers
 	DrawPile:filter(_ != Card)
-	Hand:filter(_ != Card)
+	if Hand:filter(_ != Card):length = 0 then
+		display('\e[32mAdded\e[0m \e[4m{Card:name}\e[0m to discard pile.\n')
+	end
 	DiscardPile:put(Card)
 	Card:discard
 end
@@ -76,8 +94,38 @@ export: fun remove(Card) do
 	DrawPile:filter(_ != Card)
 	Hand:filter(_ != Card)
 	DiscardPile:filter(_ != Card)
+	display('\e[31mRemoving\e[0m \e[4m{Card:name}\e[0m from hand.\n')
 	Card:remove
 end
 
-export: var choose
-
+export: fun start(DayFn, TurnFn) do
+	for Day in 1:up do
+		let DrawCount := DayFn(Day)
+		for I in 1 .. DrawCount do
+			while draw()
+		end
+		loop
+			TurnFn(Day)
+			if let Card := choose(Hand, ::Cost) then
+				if playable(Card) then
+					:>Stdout:write('Playing {Card}\n')
+					Card:play
+				else
+					display('\e[33mBlocked\e[0m \e[4m{Card:name}\e[0m cannot be played at this time.\n')
+				end
+			else
+				loop
+					discard(while Hand[1])
+				end
+				if DrawPile:length = 0 then
+					DrawPile:grow(DiscardPile)
+					DrawPile:shuffle
+					DiscardPile:empty
+				end
+				exit
+			end
+		on Error do
+			display('Error: {Error}\n')
+		end
+	end
+end

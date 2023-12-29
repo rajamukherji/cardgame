@@ -1,7 +1,7 @@
 def (Stdin, Stdout) in import("io/terminal")
 def (
 	DrawPile, Hand, DiscardPile, Modifiers, Counters, Goals, 
-	playable, discard, choose
+	playable, draw, discard, choose, display, start
 ) in import("game")
 import: cards("cards")
 
@@ -17,24 +17,54 @@ DrawPile:put(
 	cards::developer({"Skill" is 1}),
 	cards::training({"Cost" is 1}),
 	cards::bigshot({"Cost" is 1}),
-	cards::customer({"Cost" is 2, "Value" is 3})
+	cards::customer({"Cost" is 2, "Value" is 3}),
+	cards::plan({
+		"Cost" is 1,
+		"Size" is 4,
+		"Task" is {"Cost" is 3, "Skill" is 3},
+		"Goal" is cards::workshop,
+		"Details" is {
+			"Cost" is 4,
+			"Value" is 5
+		}
+	}),
+	cards::plan({
+		"Cost" is 1,
+		"Size" is 2,
+		"Task" is {"Cost" is 2, "Skill" is 2},
+		"Goal" is cards::presentation,
+		"Details" is {"Cost" is 1}
+	}),
+	cards::order({
+		"Cost" is 1,
+		"Size" is 3,
+		"Order" is cards::coffee
+	}),
+	cards::retrospective({}),
+	cards::practioner({"Influence" is 10}),
+	cards::recruiter({"Cost" is 2}),
+	cards::event({"Events" is [
+		(0.1, cards::training, {"Cost" is 2}),
+		(0.05, cards::practioner, {"Influence" is 10})
+	]})
 )
 DrawPile:shuffle
 
-choose := fun(Cards0) do
-	let Cards := list(Cards0)
+choose := fun(Seq, CostFn := 0) do
+	let Cards := list(Seq)
 	Cards:length > 0 or ret nil
 	Stdout:write('Choose a card:\n')
 	for I, Card in Cards do
-		Stdout:write('  {I}: {Card:name} - {Card:description}\n')
+		Stdout:write('  {I, "% 2d"}: \e[4m{Card:name} \e[32m({CostFn(Card) or ""})\e[0m\n      {Card:description}\n')
 	end
+	Stdout:write("\n")
 	loop
 		Stdout:write("Choice: ")
 		let Index := integer(Stdin:read:trim)
 		if Index = 0 then
 			ret nil
 		elseif let Card := Cards[Index] then
-			Stdout:write('Choosing {Index} -> {Card}\n')
+			:>Stdout:write('Choosing {Index} -> {Card}\n')
 			ret Card
 		end
 	on Error do
@@ -42,36 +72,15 @@ choose := fun(Cards0) do
 	end
 end
 
-for Day in 1:up do
-	Stdout:write('\n\e[32mStarting day {Day} ...\e[0m\n')
-	Counters["energy"] := Counters["draw_count"]
-	for I in 1 .. Counters["draw_count"] do
-		let Card := while DrawPile:pop
-		Hand:put(Card)
+display := Stdout:write(_)
+
+start(
+	fun(Day) do
+		Stdout:write('\n\e[32mDay {Day}\e[0m\n')
+		Counters["energy"] := Counters["draw_count"]
+	end,
+	fun(Day) do
+		Stdout:write('\nValue: \e[32m{Counters["value"]}\e[0m    Influence: \e[32m{Counters["influence"]}\e[0m\n')
+		Stdout:write('[\e[33m{DrawPile:length}\e[0m] - \e[32m{sum(@"☕" limit Counters["energy"])}\e[0m - [\e[33m{DiscardPile:length}\e[0m]\n\n')
 	end
-	loop
-		for Counter, Value in Counters do
-			Stdout:write('{Counter}: {Value}\n')
-		end
-		if let Card := choose(Hand) then
-			if playable(Card) then
-				Stdout:write('Playing {Card}\n')
-				Card:play
-			else
-				Stdout:write('Card cannot be played\n')
-			end
-		else
-			loop
-				discard(while Hand[1])
-			end
-			if DrawPile:length = 0 then
-				DrawPile:grow(DiscardPile)
-				DrawPile:shuffle
-				DiscardPile:empty
-			end
-			exit
-		end
-	on Error do
-		Stdout:write('Error: {Error}\n')
-	end
-end
+)
