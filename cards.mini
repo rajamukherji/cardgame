@@ -83,6 +83,7 @@ meth :description(Card: bigshot) 'Visiting bigshot requires meeting costing {Car
 meth :playable(Card: bigshot) Card::Cost <= current("energy")
 meth :play(Card: bigshot) do
 	decrease("energy", Card::Cost)
+	increase("influence", 1)
 	discard(Card)
 end
 meth :blocks(Card: bigshot, Other: card) Other in work
@@ -157,10 +158,11 @@ end
 
 export: class: presentation(work)
 meth :name(Card: presentation) 'Presentation'
-meth :description(Card: presentation) 'A presentation costing {Card::Cost} energy. Increases the skill of every developer in your hand.'
+meth :description(Card: presentation) 'A presentation costing {Card::Cost} energy. Generates {Card::Value} influence and Increases the skill of every developer in your hand.'
 meth :playable(Card: presentation) Card::Cost <= current("energy")
 meth :play(Card: presentation) do
 	decrease("energy", Card::Cost)
+	increase("influence", Card::Value)
 	for Card in Hand ->? (_ in developer) do
 		Card::Skill := old + 1 min 5
 	end

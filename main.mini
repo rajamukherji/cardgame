@@ -33,7 +33,7 @@ DrawPile:put(
 		"Size" is 2,
 		"Task" is {"Cost" is 2, "Skill" is 2},
 		"Goal" is cards::presentation,
-		"Details" is {"Cost" is 1}
+		"Details" is {"Cost" is 1, "Value" is 1}
 	}),
 	cards::order({
 		"Cost" is 1,
