@@ -48,7 +48,7 @@ DrawPile:put(
 		(0.1, cards::training, {"Cost" is 2}),
 		(0.05, cards::practioner, {"Influence" is 10})
 	]}),
-	cards::review({})
+	cards::review({"Value" is 3})
 )
 DrawPile:shuffle
 
