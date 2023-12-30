@@ -15,8 +15,8 @@ export: class: card(:details)
 
 meth ::(Card: card, Detail: string) Card:details[Detail]
 
-meth :name(Card: card) type(Card):name:title
-meth :description(Card: card) 'A {type(Card):name}.'
+meth :name(Card: card) Card::Name or type(Card):name:title
+meth :description(Card: card) Card::Description or 'A {type(Card):name}.'
 meth :draw(Card: card) nil
 meth :blocks(Card: card, Other: card) nil
 meth :playable(Card: card) nil

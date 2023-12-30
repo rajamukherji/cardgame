@@ -113,7 +113,8 @@ start(
 		let Title := 'Day {Day}'
 		let LeftPadding := 42 - Title:length div 2
 		let RightPadding := 42 - Title:length - LeftPadding
-		Stdout:write('\e[2J\e[H\e[44m{LeftPadding * " "}Day {Day}{RightPadding * " "}\e[0m\n')
+		Stdout:write('\e[2J\e[H')
+		Stdout:write('\e[44m{LeftPadding * " "}Day {Day}{RightPadding * " "}\e[0m\n')
 		Stdout:write(' Value: \e[32m{Counters["value"]}\e[0m, Influence: \e[32m{Counters["influence"]}\e[0m\n')
 		let Energy := (Counters["energy"] * "⬮") + (4 - Counters["energy"] * "⬯")
 		Stdout:write(' Cards: [\e[33m{DrawPile:length} / {DiscardPile:length}\e[0m], Energy: \e[31m{Energy}\e[0m \n\n')

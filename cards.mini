@@ -24,12 +24,23 @@ meth :name(Card: developer) 'Developer-{Card::Skill}'
 meth :description(Card: developer) 'A developer with {Card::Skill} skill.'
 meth :playable(Card: developer) 1
 meth :play(Card: developer) do
-	let Skill := Card::Skill + (current("energy") min 2)
-	let Task := choose(Hand ->? fun(Card) Card in task and Card::Skill <= Skill)
-	if Task then
-		let Cost := Task::Skill - Card::Skill
-		if Cost > 0 then
-			decrease("energy", Cost)
+	let Skill := Card::Skill + if current("energy") >= 2 then 1 else 0 end
+	let Tasks := list(Hand ->? fun(Card) Card in task and Card::Skill <= Skill)
+	let Meet := card({"Name" is "Meet 1:1", "Description" is "Increase skill by 1."})
+	if current("energy") >= 1 then Tasks:put(Meet) end
+	let Task := choose(Tasks; Task) do
+		if Task = Meet then
+			"⬮"
+		elseif Task::Skill > Card::Skill then
+			"⬮⬮"
+		end
+	end
+	if Task = Meet then
+		decrease("energy", 1)
+		Card::Skill := old + 1
+	elseif Task then
+		if Task::Skill > Card::Skill then
+			decrease("energy", 2)
 			Card::Skill := old + 1
 		end 
 		progress(Task::Goal, Task::Index)
