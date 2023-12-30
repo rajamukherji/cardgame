@@ -146,7 +146,7 @@ meth :description(Card: workshop) 'A workshop costing {Card::Cost} energy.'
 meth :playable(Card: workshop) Card::Cost <= current("energy")
 meth :play(Card: workshop) do
 	decrease("energy", Card::Cost)
-	for Card in (DrawPile & Hand & DiscardPile) ->? (_ in developer) do
+	for Card in DrawPile & Hand & DiscardPile ->? (_ in developer) do
 		Card::Skill := old + 1 min 5
 	end
 	increase("influence", Card::Value)
@@ -230,8 +230,10 @@ meth :name(Card: retrospective) 'Retrospective'
 meth :description(Card: retrospective) 'Team retrospective. Uses influence to remove overhead and practioners.'
 meth :playable(Card: retrospective) 1
 meth :play(Card: retrospective) do
-	loop
-		let Annoyance := while choose(Hand ->? fun(Card) Card in annoyance and Card::Cost <= current("influence"), ::Influence)
+	break()
+	let Deck := DrawPile & Hand & DiscardPile
+	loop		
+		let Annoyance := while choose(Deck ->? fun(Card) Card in annoyance and Card::Cost <= current("influence"), ::Influence)
 		decrease("influence", Annoyance::Influence)
 		remove(Annoyance)
 	end

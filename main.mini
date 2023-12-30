@@ -60,12 +60,12 @@ choose := fun(Seq, CostFn := 0) do
 		else
 			Stdout:write(' ╠', 39 * '═', '╣\n')
 		end
-		let Cost := CostFn(Card) or ""
+		let Cost := string(CostFn(Card) or "")
 		let Number := '{I}:'
 		let Name := Card:name
-		let LeftPadding := 39 - Name:length div 2
-		let RightPadding := 39 - Name:length - LeftPadding
-		Stdout:write(' ║\e[32m{Number}\e[39m{LeftPadding - Number:length * " "}\e[4m{Name}\e[24m{RightPadding - Cost:length * " "}\e[31m{Cost}\e[39m║\n')
+		let LeftPadding := 37 - Name:length div 2
+		let RightPadding := 37 - Name:length - LeftPadding
+		Stdout:write(' ║ \e[32m{Number}\e[39m{LeftPadding - Number:length * " "}\e[4m{Name}\e[24m{RightPadding - Cost:length * " "}\e[31m{Cost}\e[39m ║\n')
 		var Description := Card:description
 		loop
 			while Description:length > 36
@@ -113,7 +113,7 @@ start(
 		let RightPadding := 42 - Title:length - LeftPadding
 		Stdout:write('\e[2J\e[H\e[44m{LeftPadding * " "}Day {Day}{RightPadding * " "}\e[0m\n')
 		Stdout:write(' Value: \e[32m{Counters["value"]}\e[0m, Influence: \e[32m{Counters["influence"]}\e[0m\n')
-		Stdout:write(' Cards: [\e[33m{DrawPile:length}] / [{DiscardPile:length}\e[0m], Energy: \e[31m{reduce("", @" ●" limit Counters["energy"], +)}\e[0m \n\n')
+		Stdout:write(' Cards: [\e[33m{DrawPile:length} / {DiscardPile:length}\e[0m], Energy: \e[31m{reduce("", @"●" limit Counters["energy"], +)}\e[0m \n\n')
 		if Events:length > 0 then
 			each Events -> Stdout:write(" • ", _, "\n")
 			Stdout:write("\n")
