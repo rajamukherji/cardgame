@@ -9,7 +9,7 @@ export: var choose
 export: var display
 export: var log
 
-class: blocker(:type)
+class: blocker(:type, :reason)
 
 export: class: card(:details)
 
@@ -19,23 +19,23 @@ meth :name(Card: card) Card::Name or type(Card):name:title
 meth :description(Card: card) Card::Description or 'A {type(Card):name}.'
 meth :draw(Card: card) nil
 meth :blocks(Card: card, Other: card) nil
-meth :playable(Card: card) nil
+meth :blocked(Card: card) 'rules'
 meth :play(Card: card) nil
 meth :discard(Card: card) nil
 meth :remove(Card: card) nil
 
-export: fun playable(Card) do
+export: fun blocked(Card) do
 	for Modifier in Modifiers do
 		if Modifier in blocker and Card in Modifier:type then
-			ret nil
+			ret Modifier:reason
 		end
 	end
 	for Other in Hand do
-		if Other:blocks(Card) then
-			ret nil
+		if let Reason := Other:blocks(Card) then
+			ret '\e[4m{Other:name}\e[24m'
 		end
 	end
-	ret Card:playable
+	ret Card:blocked
 end
 
 export: fun played(Card) do
@@ -106,11 +106,10 @@ export: fun start(DayFn, TurnFn) do
 		loop
 			TurnFn(Day)
 			if let Card := choose(Hand, fun(Card) Card::Cost{} * "⬮") then
-				if playable(Card) then
-					:>Stdout:write('Playing {Card}\n')
-					Card:play
+				if let Reason := blocked(Card) then
+					log('\e[33mBlocked\e[0m \e[4m{Card:name}\e[0m due to {Reason}.')
 				else
-					log('\e[33mBlocked\e[0m \e[4m{Card:name}\e[0m cannot be played at this time.')
+					Card:play
 				end
 			else
 				loop
@@ -124,7 +123,8 @@ export: fun start(DayFn, TurnFn) do
 				exit
 			end
 		on Error do
-			display('Error: {Error}\n')
+			display('\e[31mError\e[0m {Error}\n')
+			log('\e[31mError\e[0m {Error}')
 		end
 	end
 end
