@@ -236,7 +236,6 @@ meth :name(Card: retrospective) 'Retrospective'
 meth :description(Card: retrospective) 'Team retrospective. Uses influence to remove overhead and practioners.'
 meth :playable(Card: retrospective) 1
 meth :play(Card: retrospective) do
-	break()
 	let Deck := DrawPile & Hand & DiscardPile
 	loop		
 		let Annoyance := while choose(Deck ->? fun(Card) Card in annoyance and Card::Cost <= current("influence"), ::Influence)
@@ -258,3 +257,15 @@ meth :draw(Card: event) do
 		end
 	end
 end
+
+export: class: review(card)
+meth :name(Card: review) 'Review'
+meth :description(Card: review) 'End of year review, converts upto {Card::Value} value to influence.'
+meth :playable(Card: review) 1
+meth :play(Card: review) do
+	let Value := Card::Value min current("value")
+	decrease("value", Value)
+	increase("influence", Value)
+	discard(Card)
+end
+
