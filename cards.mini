@@ -123,9 +123,16 @@ export: class: customer(work, audience)
 meth :name(Card: customer) 'Customer-{Card::Value}'
 meth :description(Card: customer) 'Customer that can generate ideas of value {Card::Value}.'
 meth :play(Card: customer) do
-	decrease("energy", Card::Cost)
-	discard(idea({"Cost" is 1, "Size" is Card::Value}))
-	discard(Card)
+	let Options := [
+		idea({"Cost" is 1, "Size" is Card::Value}),
+		data({"Size" is Card::Value})
+	]
+	let Cost := Card::Cost * "⬮"
+	if let Option := choose(Options, fun Cost) then
+		decrease("energy", Card::Cost)
+		discard(Option)
+		discard(Card)
+	end
 end
 meth :demo(Card: customer, Demo: demo) do
 	remove(Demo)
@@ -134,8 +141,8 @@ meth :demo(Card: customer, Demo: demo) do
 end
 
 export: class: data(card)
-meth :name(Card: data) 'Data-{Card::Value}'
-meth :description(Card: data) 'Data of value {Card::Value}.'
+meth :name(Card: data) 'Data-{Card::Size}'
+meth :description(Card: data) 'Data of size {Card::Size}.'
 
 export: class: model(card)
 meth :name(Card: model) 'Model-{Card::Value}'
@@ -157,7 +164,7 @@ meth :play(Card: scientist) do
 		discard(data({"Size" is Other::Size}))
 		discard(Other)
 	elseif Other in data then
-		discard(model({"Size" is Other::Value}))
+		discard(model({"Size" is Other::Size}))
 		remove(Other)
 	end
 	discard(Card)
@@ -183,13 +190,13 @@ meth :name(Card: recruiter) 'Recruiter'
 meth :description(Card: recruiter) 'A recruiter costing {Card::Cost} influence to hire a team member.'
 meth :blocked(Card: recruiter) Card::Cost > current("influence") and "insufficient influence"
 meth :play(Card: recruiter) do
-	let Candidates := [
+	let Options := [
 		developer({"Skill" is 1}),
 		scientist({"Skill" is 1})
 	]
-	if let Hire := choose(Candidates, fun Card::Cost) then
+	if let Option := choose(Options, fun Card::Cost) then
 		decrease("influence", Card::Cost)
-		discard(Hire)
+		discard(Option)
 		discard(Card)
 	end
 end
