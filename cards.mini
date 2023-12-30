@@ -3,6 +3,8 @@ def (
 	card, current, increase, decrease, goal, progress, draw, discard, remove, choose, log
 ) in import("game")
 
+enum: size("Tiny", "Small", "Medium", "Large", "Huge")
+
 export: class: work(card)
 meth :playable(Card: work) Card::Cost <= current("energy")
 
@@ -46,8 +48,8 @@ meth :play(Card: solution) do
 end
 
 export: class: project(work)
-meth :name(Card: project) 'Project-{Card::Size}'
-meth :description(Card: project) 'A project of value {Card::Size}.'
+meth :name(Card: project) '{size(Card::Size)} Project'
+meth :description(Card: project) '{size(Card::Size)} project.'
 meth :play(Card: project) do
 	decrease("energy", Card::Cost)
 	let Project := sum(1 .. 8;) "ABCDEFGHIJKLMNOPQRSTUVWXYZ":random
@@ -77,7 +79,19 @@ meth :play(Card: training) do
 end
 meth :blocks(Card: training, Other: card) Other in task
 
-export: class: bigshot(card)
+export: class: audience(card)
+meth :demo(Card: audience) nil
+
+export: class: demo(card)
+meth :name(Card: demo) 'Demo-{Card::Value}'
+meth :description(Card: demo) 'A demo generating {Card::Value} influence / projects.'
+meth :playable(Card: demo) some(Hand, _ in audience)
+meth :play(Card: demo) do
+	let Audience := choose(Hand ->? fun(Card) Card in audience)
+	Audience:demo(Card)
+end
+
+export: class: bigshot(audience)
 meth :name(Card: bigshot) 'Bigshot'
 meth :description(Card: bigshot) 'Visiting bigshot requires meeting costing {Card::Cost} energy or demo.'
 meth :playable(Card: bigshot) Card::Cost <= current("energy")
@@ -87,8 +101,13 @@ meth :play(Card: bigshot) do
 	discard(Card)
 end
 meth :blocks(Card: bigshot, Other: card) Other in work
+meth :demo(Card: bigshot, Demo: demo) do
+	increase("influence", Demo::Value)
+	remove(Demo)
+	discard(Card)
+end
 
-export: class: customer(work)
+export: class: customer(work, audience)
 meth :name(Card: customer) 'Customer-{Card::Value}'
 meth :description(Card: customer) 'Customer that can generate ideas of value {Card::Value}.'
 meth :play(Card: customer) do
@@ -96,23 +115,10 @@ meth :play(Card: customer) do
 	discard(idea({"Cost" is 1, "Size" is Card::Value}))
 	discard(Card)
 end
-
-export: class: demo(card)
-meth :name(Card: demo) 'Demo-{Card::Value}'
-meth :description(Card: demo) 'A demo generating {Card::Value} influence / projects.'
-meth :playable(Card: demo) some(Hand, _ in (bigshot | customer))
-meth :play(Card: demo) do
-	let Other := choose(Hand ->? fun(Card) Card in (bigshot | customer))
-	switch Other: type
-	case bigshot do
-		increase("influence", Card::Value)
-		remove(Card)
-		discard(Other)
-	case customer do
-		remove(Card)
-		discard(Other)
-		discard(project({"Cost" is 1, "Size" is Card::Value}))
-	end
+meth :demo(Card: customer, Demo: demo) do
+	remove(Demo)
+	discard(Card)
+	discard(project({"Cost" is 1, "Size" is Demo::Value}))
 end
 
 export: class: idea(work)

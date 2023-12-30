@@ -4,6 +4,7 @@ def (
 	playable, draw, discard, choose, display, log, start
 ) in import("game")
 import: cards("cards")
+def size := cards::size
 
 random::seed(time():nsec)
 
@@ -16,7 +17,7 @@ DrawPile:put(
 	cards::project({"Size" is 3, "Cost" is 1}),
 	cards::developer({"Skill" is 1}),
 	cards::training({"Cost" is 1}),
-	cards::bigshot({"Cost" is 1}),
+	cards::bigshot({"Cost" is 2}),
 	cards::customer({"Cost" is 2, "Value" is 3}),
 	cards::plan({
 		"Cost" is 1,
@@ -113,7 +114,8 @@ start(
 		let RightPadding := 42 - Title:length - LeftPadding
 		Stdout:write('\e[2J\e[H\e[44m{LeftPadding * " "}Day {Day}{RightPadding * " "}\e[0m\n')
 		Stdout:write(' Value: \e[32m{Counters["value"]}\e[0m, Influence: \e[32m{Counters["influence"]}\e[0m\n')
-		Stdout:write(' Cards: [\e[33m{DrawPile:length} / {DiscardPile:length}\e[0m], Energy: \e[31m{reduce("", @"●" limit Counters["energy"], +)}\e[0m \n\n')
+		let Energy := (Counters["energy"] * "⬮") + (4 - Counters["energy"] * "⬯")
+		Stdout:write(' Cards: [\e[33m{DrawPile:length} / {DiscardPile:length}\e[0m], Energy: \e[31m{Energy}\e[0m \n\n')
 		if Events:length > 0 then
 			each Events -> Stdout:write(" • ", _, "\n")
 			Stdout:write("\n")
