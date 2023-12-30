@@ -45,7 +45,6 @@ meth :play(Card: developer) do
 			decrease("energy", 2)
 			Card::Skill := old + 1
 		end 
-		progress(Task::Goal, Task::Index)
 		remove(Task)
 	end
 	discard(Card)
