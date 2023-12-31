@@ -165,7 +165,7 @@ meth :description(Card: scientist) 'A data scientist with {Card::Skill} skill.'
 meth :play(Card: scientist) do
 	let Other := choose("Select data target", Hand ->? fun(Card) Card in customer or Card in data)
 	if Other in customer then
-		discard(data({"Cost" is Other::Size, "Size" is Other::Size}))
+		discard(data({"Cost" is Other::Value, "Size" is Other::Value}))
 		discard(Other)
 	elseif Other in data then
 		discard(model({"Size" is Other::Size}))
