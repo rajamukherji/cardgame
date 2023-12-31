@@ -102,9 +102,11 @@ choose := fun(Message, Seq, CostFn := 0) do
 		elseif let Card := Cards[Index] then
 			:>Stdout:write('Choosing {Index} -> {Card}\n')
 			ret Card
+		else
+			Stdout:write('\e[F\e[2K')
 		end
 	on Error do
-		Stdout:write('Error: {Error}\n')
+		Stdout:write('\e[F\e[2K')
 	end
 end
 
@@ -115,18 +117,18 @@ log := Events:put(_)
 
 start(
 	fun(Day) do	
-		Counters["energy"] := Counters["draw_count"]
+		Counters["energy"] := Counters["daily_energy"]
 	end,
 	fun(Day) do
 		let Title := 'Day {Day}'
-		let LeftPadding := 42 - Title:length div 2
-		let RightPadding := 42 - Title:length - LeftPadding
+		let LeftPadding := 40 - Title:length div 2
+		let RightPadding := 40 - Title:length - LeftPadding
 		Stdout:write('\e[2J\e[H')
-		Stdout:write('\e[44m{LeftPadding * " "}Day {Day}{RightPadding * " "}\e[0m\n')
-		Stdout:write(' Value: \e[32m{Counters["value"]}\e[0m, Influence: \e[32m{Counters["influence"]}\e[0m\n')
-		let Energy := (Counters["energy"] * "⬮") + (4 - Counters["energy"] * "⬯")
-		Stdout:write(' Cards: [\e[33m{DrawPile:length} / {DiscardPile:length}\e[0m], Energy: \e[31m{Energy}\e[0m \n')
-		Stdout:write(' Goals:\n')
+		let Energy := (Counters["energy"] * "⬮") + (Counters["daily_energy"] - Counters["energy"] * "⬯")
+		let Cards := '[{DrawPile:length}/{DiscardPile:length}]'
+		Stdout:write('\e[100m \e[33m{Cards}\e[39m{LeftPadding - Cards:length * " "}Day {Day}{RightPadding - Energy:length * " "}\e[31m{Energy}\e[39m \e[0m\n')
+		:>🪙😎🗫🗩🗣💰
+		Stdout:write(' Value: \e[32m{Counters["value"]}\e[0m, Influence: \e[32m{Counters["influence"]}\e[0m, Goals: \e[32m{Goals:size}\e[0m\n')
 		let IndexWidth := string(max(key(Goals))):length
 		let IndexFormat := '%{IndexWidth}d'
 		for Index, (Tasks, Goal) in Goals do
@@ -136,11 +138,11 @@ start(
 			let RightPadding := 36 - IndexWidth - Name:length - LeftPadding
 			Stdout:write('  \e[100m \e[32m{Index, IndexFormat}:\e[39m{LeftPadding * " "}\e[4m{Name}\e[24m{RightPadding - Cost:length * " "}\e[33m{Cost}\e[39m \e[49m\n')
 		end
-		Stdout:write("\n")
 		if Events:length > 0 then
+			Stdout:write(' \n')
 			each Events -> Stdout:write(" • ", _, "\n")
-			Stdout:write("\n")
 			Events:empty
 		end
+		Stdout:write(' \n')
 	end
 )
