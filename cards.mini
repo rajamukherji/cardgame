@@ -3,14 +3,16 @@ def (
 	card, current, increase, decrease, goal, progress, draw, discard, remove, choose, log
 ) in import("game")
 
+var LastGoal := 0
+
 enum: size("Tiny", "Small", "Medium", "Large", "Huge")
 
 export: class: work(card)
 meth :blocked(Card: work) Card::Cost > current("energy") and "insufficient energy"
 
 export: class: task(work)
-meth :name(Card: task) 'Task-{Card::Skill}'
-meth :description(Card: task) 'A task requiring {Card::Cost} energy and {Card::Skill} skill.'
+meth :name(Card: task) 'Task ⟶ {Card::Goal}'
+meth :description(Card: task) 'A task requiring {Card::Skill} skill.'
 meth :play(Card: task) do
 	decrease("energy", Card::Cost)
 	remove(Card)
@@ -64,13 +66,11 @@ meth :name(Card: project) '{size(Card::Size)} Project'
 meth :description(Card: project) '{size(Card::Size)} project.'
 meth :play(Card: project) do
 	decrease("energy", Card::Cost)
-	let Project := sum(1 .. 8;) "ABCDEFGHIJKLMNOPQRSTUVWXYZ":random
+	let Project := LastGoal:inc
 	let Tasks := list(1 .. Card::Size; I) do
 		discard(task({"Cost" is 1, "Skill" is 3, "Goal" is Project, "Index" is I}))
 	end
-	goal(Project, set(1 .. Card::Size); Goal) do
-		discard(solution({"Value" is Card::Size}))
-	end
+	goal(Project, set(1 .. Card::Size), solution({"Value" is Card::Size}))
 	remove(Card)
 end
 
@@ -125,7 +125,7 @@ meth :description(Card: customer) 'Customer that can generate ideas of value {Ca
 meth :play(Card: customer) do
 	let Options := [
 		idea({"Cost" is 1, "Size" is Card::Value}),
-		data({"Size" is Card::Value})
+		data({"Cost" is Card::Value, "Size" is Card::Value})
 	]
 	let Cost := Card::Cost * "⬮"
 	if let Option := choose(Options, fun Cost) then
@@ -140,9 +140,13 @@ meth :demo(Card: customer, Demo: demo) do
 	discard(project({"Cost" is 1, "Size" is Demo::Value}))
 end
 
-export: class: data(card)
+export: class: data(work)
 meth :name(Card: data) 'Data-{Card::Size}'
 meth :description(Card: data) 'Data of size {Card::Size}.'
+meth :play(Card: data) do
+	discard(model({"Value" is Card::Size}))
+	remove(Card)
+end
 
 export: class: model(card)
 meth :name(Card: model) 'Model-{Card::Value}'
@@ -161,7 +165,7 @@ meth :description(Card: scientist) 'A data scientist with {Card::Skill} skill.'
 meth :play(Card: scientist) do
 	let Other := choose(Hand ->? fun(Card) Card in customer or Card in data)
 	if Other in customer then
-		discard(data({"Size" is Other::Size}))
+		discard(data({"Cost" is Other::Size, "Size" is Other::Size}))
 		discard(Other)
 	elseif Other in data then
 		discard(model({"Size" is Other::Size}))
@@ -175,13 +179,11 @@ meth :name(Card: idea) 'Idea-{Card::Size}'
 meth :description(Card: idea) 'An idea for a demo that will generate {Card::Size} influence / projects.'
 meth :play(Card: idea) do
 	decrease("energy", Card::Cost)
-	let Idea := sum(1 .. 8;) "ABCDEFGHIJKLMNOPQRSTUVWXYZ":random
+	let Demo := LastGoal:inc
 	let Tasks := list(1 .. Card::Size; I) do
-		discard(task({"Cost" is 1, "Skill" is 3, "Goal" is Idea, "Index" is I}))
+		discard(task({"Cost" is 1, "Skill" is 3, "Goal" is Demo, "Index" is I}))
 	end
-	goal(Idea, set(1 .. Card::Size); Goal) do
-		discard(demo({"Value" is Card::Size}))
-	end
+	goal(Demo, set(1 .. Card::Size), demo({"Value" is Card::Size}))
 	remove(Card)
 end
 
@@ -235,13 +237,11 @@ meth :name(Card: plan) 'Plan {Card::Goal:name}'
 meth :description(Card: plan) 'Plan a {Card::Goal:name}.'
 meth :play(Card: plan) do
 	decrease("energy", Card::Cost)
-	let Goal := sum(1 .. 8;) "ABCDEFGHIJKLMNOPQRSTUVWXYZ":random
+	let Goal := LastGoal:inc
 	for I in 1 .. Card::Size do
 		discard(task(Card::Task + {"Goal" is Goal, "Index" is I}))
 	end
-	goal(Goal, set(1 .. Card::Size); Goal) do
-		discard(Card::Goal(Card::Details))
-	end
+	goal(Goal, set(1 .. Card::Size), Card::Goal(Card::Details))
 	discard(Card)
 end
 

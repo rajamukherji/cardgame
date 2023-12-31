@@ -59,11 +59,11 @@ export: fun goal(Name, Tasks, Action) do
 end
 
 export: fun progress(Name, Index) do
-	let Goal := Goals[Name] or error("NameError", 'Unknown goal: {Name}')
-	Goal[1]:delete(Index)
-	if Goal[1]:size = 0 then
+	let (Tasks, Goal) := Goals[Name] or error("NameError", 'Unknown goal: {Name}')
+	Tasks:delete(Index)
+	if Tasks:size = 0 then
 		Goals:delete(Name)
-		Goal[2]()
+		discard(Goal)
 	end
 end
 

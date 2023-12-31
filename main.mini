@@ -123,7 +123,18 @@ start(
 		Stdout:write('\e[44m{LeftPadding * " "}Day {Day}{RightPadding * " "}\e[0m\n')
 		Stdout:write(' Value: \e[32m{Counters["value"]}\e[0m, Influence: \e[32m{Counters["influence"]}\e[0m\n')
 		let Energy := (Counters["energy"] * "⬮") + (4 - Counters["energy"] * "⬯")
-		Stdout:write(' Cards: [\e[33m{DrawPile:length} / {DiscardPile:length}\e[0m], Energy: \e[31m{Energy}\e[0m \n\n')
+		Stdout:write(' Cards: [\e[33m{DrawPile:length} / {DiscardPile:length}\e[0m], Energy: \e[31m{Energy}\e[0m \n')
+		Stdout:write(' Goals:\n')
+		let IndexWidth := string(max(key(Goals))):length
+		let IndexFormat := '%{IndexWidth}d'
+		for Index, (Tasks, Goal) in Goals do
+			let Cost := Tasks:size * "✔"
+			let Name := Goal:name
+			let LeftPadding := 35 - IndexWidth - Name:length div 2
+			let RightPadding := 35 - IndexWidth - Name:length - LeftPadding
+			Stdout:write('  \e[100m \e[32m{Index, IndexFormat}:\e[39m{LeftPadding * " "}\e[4m{Name}\e[24m{RightPadding - Cost:length * " "}\e[33m{Cost}\e[39m \e[49m\n')
+		end
+		Stdout:write("\n")
 		if Events:length > 0 then
 			each Events -> Stdout:write(" • ", _, "\n")
 			Stdout:write("\n")
