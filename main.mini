@@ -10,8 +10,8 @@ random::seed(time():nsec)
 
 Counters["influence"] := 0
 Counters["value"] := 0
-Counters["daily_energy"] := 3
-Counters["draw_count"] := 4
+Counters["daily_energy"] := 4
+Counters["draw_count"] := 5
 
 DrawPile:put(
 	cards::project({"Size" is 3, "Cost" is 1}),
