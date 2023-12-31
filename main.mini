@@ -53,10 +53,12 @@ DrawPile:put(
 )
 DrawPile:shuffle
 
-choose := fun(Seq, CostFn := 0) do
+choose := fun(Message, Seq, CostFn := 0) do
 	let Cards := list(Seq)
-	Cards:length > 0 or ret nil
-	Stdout:write(' Choose a card (\e[32m0\e[0m: Cancel or Skip):\n\n')
+	:>Cards:length > 0 or ret nil
+	Stdout:write(' {Message}:\n\n')
+	:>Stdout:write( (\e[32m0\e[0m: Cancel or Skip):\n\n')
+	Stdout:write('  \e[100m \e[32m0:\e[39m{11 * " "}\e[4mCancel or Skip\e[24m{11 * " "}\e[49m\n\n')
 	for I, Card in Cards do
 		:<if I = 1 then
 			Stdout:write(' ╔', 39 * '═', '╗\n')
@@ -130,8 +132,8 @@ start(
 		for Index, (Tasks, Goal) in Goals do
 			let Cost := Tasks:size * "✔"
 			let Name := Goal:name
-			let LeftPadding := 35 - IndexWidth - Name:length div 2
-			let RightPadding := 35 - IndexWidth - Name:length - LeftPadding
+			let LeftPadding := 36 - IndexWidth - Name:length div 2
+			let RightPadding := 36 - IndexWidth - Name:length - LeftPadding
 			Stdout:write('  \e[100m \e[32m{Index, IndexFormat}:\e[39m{LeftPadding * " "}\e[4m{Name}\e[24m{RightPadding - Cost:length * " "}\e[33m{Cost}\e[39m \e[49m\n')
 		end
 		Stdout:write("\n")

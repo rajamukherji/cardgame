@@ -19,7 +19,7 @@ meth :name(Card: card) Card::Name or type(Card):name:title
 meth :description(Card: card) Card::Description or 'A {type(Card):name}.'
 meth :draw(Card: card) nil
 meth :blocks(Card: card, Other: card) nil
-meth :blocked(Card: card) 'rules'
+meth :blocked(Card: card) 'is unplayable'
 meth :play(Card: card) nil
 meth :discard(Card: card) nil
 meth :remove(Card: card) nil
@@ -32,7 +32,7 @@ export: fun blocked(Card) do
 	end
 	for Other in Hand do
 		if let Reason := Other:blocks(Card) then
-			ret '\e[4m{Other:name}\e[24m'
+			ret 'by \e[4m{Other:name}\e[24m'
 		end
 	end
 	ret Card:blocked
@@ -105,9 +105,9 @@ export: fun start(DayFn, TurnFn) do
 		end
 		loop
 			TurnFn(Day)
-			if let Card := choose(Hand, fun(Card) Card::Cost{} * "⬮") then
+			if let Card := choose("Select card to play", Hand, fun(Card) Card::Cost{} * "⬮") then
 				if let Reason := blocked(Card) then
-					log('\e[33mBlocked\e[0m \e[4m{Card:name}\e[0m due to {Reason}.')
+					log('\e[33mBlocked\e[0m \e[4m{Card:name}\e[0m {Reason}.')
 				else
 					Card:play
 				end
