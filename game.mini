@@ -125,6 +125,7 @@ export: fun start(DayFn, TurnFn) do
 		on Error do
 			display('\e[31mError\e[0m {Error}\n')
 			log('\e[31mError\e[0m {Error}')
+			halt()
 		end
 	end
 end
