@@ -103,7 +103,9 @@ choose := fun(Message, Seq, CostFn := 0) do
 		Row := old + Height + 1
 	end
 	Stdout:write("\e[6n")
-	let (_, Y, X) := Stdin:readx("R") % r"\e\[([0-9]+);([0-9]+)"
+	let Line := Stdin:readx("R")
+	Stdout:write('Line = {Line[2, 0]}\n')
+	let (_, Y, X) := Line % r"\e\[([0-9]+);([0-9]+)"
 	for Range in Rows do
 		Range := old + (integer(Y) - Row)
 	end
