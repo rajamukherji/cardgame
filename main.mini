@@ -143,6 +143,7 @@ choose := fun(Message, Seq, CostFn := 0) do
 		end
 	on Error do
 		Stdout:write('\e[31m{Error}\e[0m\n')
+		halt()
 	end
 end
 
