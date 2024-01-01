@@ -1,4 +1,6 @@
 def (Stdin, Stdout) in import("io/terminal")
+import: base16("enc/base16")
+import: terminal("io/terminal")
 def (
 	DrawPile, Hand, DiscardPile, Modifiers, Counters, Goals, 
 	playable, draw, discard, choose, display, log, start
@@ -59,6 +61,8 @@ choose := fun(Message, Seq, CostFn := 0) do
 	Stdout:write(' {Message}:\n\n')
 	:>Stdout:write( (\e[32m0\e[0m: Cancel or Skip):\n\n')
 	Stdout:write('  \e[100m \e[32m0:\e[39m{11 * " "}\e[4mCancel or Skip\e[24m{11 * " "}\e[49m\n\n')
+	let Rows := [1 .. 1]
+	var Row := 3
 	for I, Card in Cards do
 		:<if I = 1 then
 			Stdout:write(' ╔', 39 * '═', '╗\n')
@@ -66,12 +70,13 @@ choose := fun(Message, Seq, CostFn := 0) do
 			Stdout:write(' ╠', 39 * '═', '╣\n')
 		end>:
 		let Cost := string(CostFn(Card) or "")
-		let Number := '{I}:'
+		let Number := '{I, 36}:'
 		let Name := Card:name
 		let LeftPadding := 37 - Name:length div 2
 		let RightPadding := 37 - Name:length - LeftPadding
 		:>Stdout:write(' ║ \e[32m{Number}\e[39m{LeftPadding - Number:length * " "}\e[4m{Name}\e[24m{RightPadding - Cost:length * " "}\e[31m{Cost}\e[39m ║\n')
 		Stdout:write('  \e[100m \e[32m{Number}\e[39m{LeftPadding - Number:length * " "}\e[4m{Name}\e[24m{RightPadding - Cost:length * " "}\e[31m{Cost}\e[39m \e[49m\n')
+		var Height := 1
 		var Description := Card:description
 		loop
 			while Description:length > 36
@@ -79,34 +84,63 @@ choose := fun(Message, Seq, CostFn := 0) do
 				if Description[I] = " " then
 					:>Stdout:write(' ║  {Description[1, I]}{37 - I * " "} ║\n')
 					Stdout:write('  \e[100m  {Description[1, I]}{37 - I * " "} \e[49m\n')
+					Height := old + 1
 					Description := old[I + 1, 0]
 					exit
 				end
 			else
 				:>Stdout:write(' ║  {Description[1, 37]} ║\n')
-				Stdout:write('  \e[100m  {Description[1, 37]} \e[49m\n')
+				Stdout:write('  \e[100m  {Description[1, 37]} \e[49m\n')		
+				Height := old + 1
 				Description := old[37, 0]
 			end
 		end
 		:>Stdout:write(' ║  {Description}{36 - Description:length * " "} ║\n')
 		Stdout:write('  \e[100m  {Description}{36 - Description:length * " "} \e[49m\n')
+		Height := old + 1
 		Stdout:write("\n")
+		Rows:put(Row .. (Row - 1 + Height))
+		Row := old + Height + 1
 	end
+	Stdout:write("\e[6n")
+	let (_, Y, X) := Stdin:readx("R") % r"\e\[([0-9]+);([0-9]+)"
+	for Range in Rows do
+		Range := old + (integer(Y) - Row)
+	end
+	:>Stdout:write('Y = {Y}, X = {X}, Rows = {Rows}\n')
 	:>Stdout:write(' ╚', 39 * '═', '╝\n')
 	:>Stdout:write("\n")
+	Stdout:write(" Choice: ")
 	loop
-		Stdout:write(" Choice: ")
-		let Index := integer(Stdin:read:trim)
+		let Input := Stdin:read(1)
+		:>Stdout:write('<{Input:code}>\n')
+		let Index := if Input = "\e" then
+			let (_, Button, X, Y, Event) := Stdin:readi("Mm") % r"\[<([0-9]+);([0-9]+);([0-9]+)([Mm])"
+			:>let Bytes := Stdin:read(5)
+			Event = "m" or next
+			:>Stdout:write('{Button} @ {X},{Y} -> {Event}\n')
+			if let Match := first2(Rows ->? (integer(Y) in _)) then
+				Match[1] - 1
+			else
+				next
+			end
+		else
+			integer(Input, 36)
+		on Error do
+			next
+		end
+		Stdout:write(Index)
+		:>let Index := integer(Input) :> :trim)
 		if Index = 0 then
 			ret nil
 		elseif let Card := Cards[Index] then
 			:>Stdout:write('Choosing {Index} -> {Card}\n')
 			ret Card
 		else
-			Stdout:write('\e[F\e[2K')
+			Stdout:write('\e[D\e[K')
 		end
 	on Error do
-		Stdout:write('\e[F\e[2K')
+		Stdout:write('\e[31m{Error}\e[0m\n')
 	end
 end
 
@@ -114,6 +148,10 @@ display := Stdout:write(_)
 
 let Events := []
 log := Events:put(_)
+
+Stdin:set(terminal::lflag::ICANON, false)
+Stdin:set(terminal::lflag::ECHO, false)
+Stdout:write("\e[?1003h\e[?1015h\e[?1006h")
 
 start(
 	fun(Day) do	
