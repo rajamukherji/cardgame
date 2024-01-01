@@ -155,7 +155,7 @@ log := Events:put(_)
 
 Stdin:set(terminal::lflag::ICANON, false)
 Stdin:set(terminal::lflag::ECHO, false)
-Stdout:write("\e[?1046h\e[?1049h\e[?1003h\e[?1015h\e[?1006h")
+Stdout:write("\e[?47h\e[?1046h\e[?1049h\e[?1003h\e[?1015h\e[?1006h")
 
 start(
 	fun(Day) do	
