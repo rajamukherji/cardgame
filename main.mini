@@ -119,6 +119,7 @@ choose := fun(Message, Seq, CostFn := 0) do
 			:>let Bytes := Stdin:read(5)
 			Event = "m" or next
 			:>Stdout:write('{Button} @ {X},{Y} -> {Event}\n')
+			3 <= integer(X) <= 41 or next
 			if let Match := first2(Rows ->? (integer(Y) in _)) then
 				Match[1] - 1
 			else

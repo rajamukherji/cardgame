@@ -229,7 +229,7 @@ meth :play(Card: presentation) do
 	for Card in Hand ->? (_ in developer) do
 		Card::Skill := old + 1 min 5
 	end
-	discard(Card)
+	remove(Card)
 end
 
 export: class: plan(work)
@@ -293,7 +293,7 @@ meth :blocked(Card: retrospective) nil
 meth :play(Card: retrospective) do
 	let Deck := DrawPile & Hand & DiscardPile
 	loop		
-		let Annoyance := while choose("Select annoyance to remove", Deck ->? fun(Card) Card in annoyance and Card::Cost <= current("influence"), ::Influence)
+		let Annoyance := while choose("Select annoyance to remove", Deck ->? fun(Card) Card in annoyance and Card::Influence <= current("influence"), ::Influence)
 		decrease("influence", Annoyance::Influence)
 		remove(Annoyance)
 	end
