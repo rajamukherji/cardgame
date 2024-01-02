@@ -279,7 +279,7 @@ meth :play(Card: overhead) do
 end
 meth :blocks(Card: overhead, Other: card) Card::Mandatory = true and Other in work and not Other in overhead
 
-export: class: practioner(card)
+export: class: practioner(annoyance)
 meth :name(Card: practioner) 'Agile practitioner'
 meth :description(Card: practioner) 'Agile practioner generates overhead when discarded.'
 meth :discard(Card: practioner) do
