@@ -45,7 +45,7 @@ DrawPile:put(
 	}),
 	cards::retrospective({}),
 	cards::practioner({"Influence" is 10}),
-	cards::recruiter({"Cost" is 2}),
+	cards::recruiter({"Influence" is 2}),
 	cards::event({"Events" is [
 		(0.1, cards::training, {"Cost" is 2}),
 		(0.05, cards::practioner, {"Influence" is 10})
@@ -166,7 +166,8 @@ start(
 		let LeftPadding := 40 - Title:length div 2
 		let RightPadding := 40 - Title:length - LeftPadding
 		Stdout:write('\e[2J\e[H')
-		let Energy := (Counters["energy"] * "⬮") + (Counters["daily_energy"] - Counters["energy"] * "⬯")
+		let Energy := (Counters["energy"] * "■") +
+			(Counters["daily_energy"] - Counters["energy"] * "□")
 		let Cards := '[{DrawPile:length}/{DiscardPile:length}]'
 		Stdout:write('\e[100m \e[33m{Cards}\e[39m{LeftPadding - Cards:length * " "}Day {Day}{RightPadding - Energy:length * " "}\e[31m{Energy}\e[39m \e[0m\n')
 		:>🪙😎🗫🗩🗣💰

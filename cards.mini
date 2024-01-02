@@ -189,15 +189,15 @@ end
 
 export: class: recruiter(card)
 meth :name(Card: recruiter) 'Recruiter'
-meth :description(Card: recruiter) 'A recruiter costing {Card::Cost} influence to hire a team member.'
-meth :blocked(Card: recruiter) Card::Cost > current("influence") and "insufficient influence"
+meth :description(Card: recruiter) 'A recruiter costing {Card::Influence} influence to hire a team member.'
+meth :blocked(Card: recruiter) Card::Influence > current("influence") and "insufficient influence"
 meth :play(Card: recruiter) do
 	let Options := [
 		developer({"Skill" is 1}),
 		scientist({"Skill" is 1})
 	]
-	if let Option := choose("Select new team member", Options, fun Card::Cost) then
-		decrease("influence", Card::Cost)
+	if let Option := choose("Select new team member", Options, fun Card::Influence) then
+		decrease("influence", Card::Influence)
 		discard(Option)
 		discard(Card)
 	end

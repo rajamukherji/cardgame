@@ -105,7 +105,7 @@ export: fun start(DayFn, TurnFn) do
 		end
 		loop
 			TurnFn(Day)
-			if let Card := choose("Select card to play", Hand, fun(Card) Card::Cost{} * "⬮") then
+			if let Card := choose("Select card to play", Hand, fun(Card) Card::Cost{} * "■") then
 				if let Reason := blocked(Card) then
 					log('\e[33mBlocked\e[0m \e[4m{Card:name}\e[0m {Reason}.')
 				else
