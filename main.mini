@@ -150,8 +150,11 @@ display := Stdout:write(_)
 let Events := []
 log := Events:put(_)
 
-Stdin:set(terminal::lflag::ICANON, false)
-Stdin:set(terminal::lflag::ECHO, false)
+with Attrs := Stdin:attrs do
+	Attrs:set(terminal::lflag::ICANON, false)
+	Attrs:set(terminal::lflag::ECHO, false)
+	Stdin:attrs(Attrs, terminal::TCSAFLUSH)
+end
 Stdout:write("\e[?1046h\e[?1049h\e[?1000h\e[?1006h")
 
 start(
