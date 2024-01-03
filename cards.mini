@@ -34,9 +34,9 @@ meth :play(Card: developer) do
 	if current("energy") >= 1 then Tasks:put(Meet) end
 	let Task := choose("Select task to complete", Tasks; Task) do
 		if Task = Meet then
-			"⬮"
+			"■"
 		elseif Task::Skill > Card::Skill then
-			"⬮⬮"
+			"■■"
 		end
 	end
 	if Task = Meet then
@@ -127,7 +127,7 @@ meth :play(Card: customer) do
 		idea({"Cost" is 1, "Size" is Card::Value}),
 		data({"Cost" is Card::Value, "Size" is Card::Value})
 	]
-	let Cost := Card::Cost * "⬮"
+	let Cost := Card::Cost * "■"
 	if let Option := choose("Select meeting result", Options, fun Cost) then
 		decrease("energy", Card::Cost)
 		discard(Option)
@@ -144,6 +144,7 @@ export: class: data(work)
 meth :name(Card: data) 'Data-{Card::Size}'
 meth :description(Card: data) 'Data of size {Card::Size}.'
 meth :play(Card: data) do
+	decrease("energy", Card::Cost)
 	discard(model({"Value" is Card::Size}))
 	remove(Card)
 end
@@ -168,7 +169,7 @@ meth :play(Card: scientist) do
 		discard(data({"Cost" is Other::Value, "Size" is Other::Value}))
 		discard(Other)
 	elseif Other in data then
-		discard(model({"Size" is Other::Size}))
+		discard(model({"Value" is Other::Size}))
 		remove(Other)
 	end
 	discard(Card)
