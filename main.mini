@@ -2,7 +2,7 @@ def (Stdin, Stdout) in import("io/terminal")
 import: base16("enc/base16")
 import: terminal("io/terminal")
 def (
-	DrawPile, Hand, DiscardPile, Modifiers, Counters, Goals, 
+	DrawPile, Hand, DiscardPile, Modifiers, Counters, Goals,
 	playable, draw, discard, choose, display, log, start
 ) in import("game")
 import: cards("cards")
@@ -90,7 +90,7 @@ choose := fun(Message, Seq, CostFn := 0) do
 				end
 			else
 				:>Stdout:write(' ║  {Description[1, 37]} ║\n')
-				Stdout:write('  \e[100m  {Description[1, 37]} \e[49m\n')		
+				Stdout:write('  \e[100m  {Description[1, 37]} \e[49m\n')
 				Height := old + 1
 				Description := old[37, 0]
 			end
@@ -158,13 +158,13 @@ end
 Stdout:write("\e[?1046h\e[?1049h\e[?1000h\e[?1006h")
 
 start(
-	fun(Day) do	
+	fun(Day) do
 		Counters["energy"] := Counters["daily_energy"]
 	end,
 	fun(Day) do
 		let Title := 'Day {Day}'
-		let LeftPadding := 40 - Title:length div 2
-		let RightPadding := 40 - Title:length - LeftPadding
+		let LeftPadding := 41 - Title:length div 2
+		let RightPadding := 41 - Title:length - LeftPadding
 		Stdout:write('\e[2J\e[H')
 		let Energy := (Counters["energy"] * "■") +
 			(Counters["daily_energy"] - Counters["energy"] * "□")
