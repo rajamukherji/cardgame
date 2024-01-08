@@ -60,7 +60,7 @@ choose := fun(Message, Seq, CostFn := 0) do
 	:>Cards:length > 0 or ret nil
 	Stdout:write(' {Message}:\n\n')
 	:>Stdout:write( (\e[32m0\e[0m: Cancel or Skip):\n\n')
-	Stdout:write('  \e[100m \e[32m0:\e[39m{10 * " "}\e[4mCancel or Skip\e[24m{11 * " "}\e[49m\n\n')
+	Stdout:write('  \e[7m \e[42m0:\e[49m{10 * " "}\e[4mCancel or Skip\e[24m{11 * " "}\e[27m\n\n')
 	let Rows := [1 .. 1]
 	var Row := 3
 	for I, Card in Cards do
@@ -75,7 +75,7 @@ choose := fun(Message, Seq, CostFn := 0) do
 		let LeftPadding := 36 - Name:length div 2
 		let RightPadding := 36 - Name:length - LeftPadding
 		:>Stdout:write(' ║ \e[32m{Number}\e[39m{LeftPadding - Number:length * " "}\e[4m{Name}\e[24m{RightPadding - Cost:length * " "}\e[31m{Cost}\e[39m ║\n')
-		Stdout:write('  \e[100m \e[32m{Number}\e[39m{LeftPadding - Number:length * " "}\e[4m{Name}\e[24m{RightPadding - Cost:length * " "}\e[31m{Cost}\e[39m \e[49m\n')
+		Stdout:write('  \e[7m \e[42m{Number}\e[49m{LeftPadding - Number:length * " "}\e[4m{Name}\e[24m{RightPadding - Cost:length * " "}\e[41m{Cost}\e[49m \e[27m\n')
 		var Height := 1
 		var Description := Card:description
 		loop
@@ -83,20 +83,20 @@ choose := fun(Message, Seq, CostFn := 0) do
 			for I in 36 .. 1 by -1 do
 				if Description[I] = " " then
 					:>Stdout:write(' ║  {Description[1, I]}{37 - I * " "} ║\n')
-					Stdout:write('  \e[100m  {Description[1, I]}{36 - I * " "} \e[49m\n')
+					Stdout:write('  \e[7m  {Description[1, I]}{36 - I * " "} \e[27m\n')
 					Height := old + 1
 					Description := old[I + 1, 0]
 					exit
 				end
 			else
 				:>Stdout:write(' ║  {Description[1, 37]} ║\n')
-				Stdout:write('  \e[100m  {Description[1, 36]} \e[49m\n')
+				Stdout:write('  \e[7m  {Description[1, 36]} \e[27m\n')
 				Height := old + 1
 				Description := old[36, 0]
 			end
 		end
 		:>Stdout:write(' ║  {Description}{36 - Description:length * " "} ║\n')
-		Stdout:write('  \e[100m  {Description}{35 - Description:length * " "} \e[49m\n')
+		Stdout:write('  \e[7m  {Description}{35 - Description:length * " "} \e[27m\n')
 		Height := old + 1
 		Stdout:write("\n")
 		Rows:put(Row .. (Row - 1 + Height))
@@ -169,7 +169,7 @@ start(
 		let Energy := (Counters["energy"] * "■") +
 			(Counters["daily_energy"] - Counters["energy"] * "□")
 		let Cards := '[{DrawPile:length}/{DiscardPile:length}]'
-		Stdout:write('\e[100m \e[33m{Cards}\e[39m{LeftPadding - Cards:length * " "}Day {Day}{RightPadding - Energy:length * " "}\e[31m{Energy}\e[39m \e[0m\n')
+		Stdout:write('\e[7m \e[43m{Cards}\e[49m{LeftPadding - Cards:length * " "}Day {Day}{RightPadding - Energy:length * " "}\e[41m{Energy}\e[49m \e[0m\n')
 		:>🪙😎🗫🗩🗣💰
 		Stdout:write(' Value: \e[32m{Counters["value"]}\e[0m, Influence: \e[32m{Counters["influence"]}\e[0m, Goals: \e[32m{Goals:size}\e[0m\n')
 		let IndexWidth := string(max(key(Goals))):length
@@ -179,7 +179,7 @@ start(
 			let Name := Goal:name
 			let LeftPadding := 35 - IndexWidth - Name:length div 2
 			let RightPadding := 35 - IndexWidth - Name:length - LeftPadding
-			Stdout:write('  \e[100m \e[32m{Index, IndexFormat}:\e[39m{LeftPadding * " "}\e[4m{Name}\e[24m{RightPadding - Cost:length * " "}\e[33m{Cost}\e[39m \e[49m\n')
+			Stdout:write('  \e[7m \e[32m{Index, IndexFormat}:\e[39m{LeftPadding * " "}\e[4m{Name}\e[24m{RightPadding - Cost:length * " "}\e[33m{Cost}\e[39m \e[27m\n')
 		end
 		if Events:length > 0 then
 			Stdout:write(' \n')
