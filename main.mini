@@ -177,8 +177,8 @@ start(
 		for Index, (Tasks, Goal) in Goals do
 			let Cost := Tasks:size * "✔"
 			let Name := Goal:name
-			let LeftPadding := 36 - IndexWidth - Name:length div 2
-			let RightPadding := 36 - IndexWidth - Name:length - LeftPadding
+			let LeftPadding := 35 - IndexWidth - Name:length div 2
+			let RightPadding := 35 - IndexWidth - Name:length - LeftPadding
 			Stdout:write('  \e[100m \e[32m{Index, IndexFormat}:\e[39m{LeftPadding * " "}\e[4m{Name}\e[24m{RightPadding - Cost:length * " "}\e[33m{Cost}\e[39m \e[49m\n')
 		end
 		if Events:length > 0 then
