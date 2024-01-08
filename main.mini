@@ -60,7 +60,7 @@ choose := fun(Message, Seq, CostFn := 0) do
 	:>Cards:length > 0 or ret nil
 	Stdout:write(' {Message}:\n\n')
 	:>Stdout:write( (\e[32m0\e[0m: Cancel or Skip):\n\n')
-	Stdout:write('  \e[100m \e[32m0:\e[39m{11 * " "}\e[4mCancel or Skip\e[24m{11 * " "}\e[49m\n\n')
+	Stdout:write('  \e[100m \e[32m0:\e[39m{10 * " "}\e[4mCancel or Skip\e[24m{11 * " "}\e[49m\n\n')
 	let Rows := [1 .. 1]
 	var Row := 3
 	for I, Card in Cards do
@@ -72,31 +72,31 @@ choose := fun(Message, Seq, CostFn := 0) do
 		let Cost := string(CostFn(Card) or "")
 		let Number := '{I, 36}:'
 		let Name := Card:name
-		let LeftPadding := 37 - Name:length div 2
-		let RightPadding := 37 - Name:length - LeftPadding
+		let LeftPadding := 36 - Name:length div 2
+		let RightPadding := 36 - Name:length - LeftPadding
 		:>Stdout:write(' ║ \e[32m{Number}\e[39m{LeftPadding - Number:length * " "}\e[4m{Name}\e[24m{RightPadding - Cost:length * " "}\e[31m{Cost}\e[39m ║\n')
 		Stdout:write('  \e[100m \e[32m{Number}\e[39m{LeftPadding - Number:length * " "}\e[4m{Name}\e[24m{RightPadding - Cost:length * " "}\e[31m{Cost}\e[39m \e[49m\n')
 		var Height := 1
 		var Description := Card:description
 		loop
-			while Description:length > 36
-			for I in 37 .. 1 by -1 do
+			while Description:length > 35
+			for I in 36 .. 1 by -1 do
 				if Description[I] = " " then
 					:>Stdout:write(' ║  {Description[1, I]}{37 - I * " "} ║\n')
-					Stdout:write('  \e[100m  {Description[1, I]}{37 - I * " "} \e[49m\n')
+					Stdout:write('  \e[100m  {Description[1, I]}{36 - I * " "} \e[49m\n')
 					Height := old + 1
 					Description := old[I + 1, 0]
 					exit
 				end
 			else
 				:>Stdout:write(' ║  {Description[1, 37]} ║\n')
-				Stdout:write('  \e[100m  {Description[1, 37]} \e[49m\n')
+				Stdout:write('  \e[100m  {Description[1, 36]} \e[49m\n')
 				Height := old + 1
-				Description := old[37, 0]
+				Description := old[36, 0]
 			end
 		end
 		:>Stdout:write(' ║  {Description}{36 - Description:length * " "} ║\n')
-		Stdout:write('  \e[100m  {Description}{36 - Description:length * " "} \e[49m\n')
+		Stdout:write('  \e[100m  {Description}{35 - Description:length * " "} \e[49m\n')
 		Height := old + 1
 		Stdout:write("\n")
 		Rows:put(Row .. (Row - 1 + Height))
@@ -163,8 +163,8 @@ start(
 	end,
 	fun(Day) do
 		let Title := 'Day {Day}'
-		let LeftPadding := 41 - Title:length div 2
-		let RightPadding := 41 - Title:length - LeftPadding
+		let LeftPadding := 40 - Title:length div 2
+		let RightPadding := 40 - Title:length - LeftPadding
 		Stdout:write('\e[2J\e[H')
 		let Energy := (Counters["energy"] * "■") +
 			(Counters["daily_energy"] - Counters["energy"] * "□")
