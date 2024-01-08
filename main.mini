@@ -179,7 +179,7 @@ start(
 			let Name := Goal:name
 			let LeftPadding := 35 - IndexWidth - Name:length div 2
 			let RightPadding := 35 - IndexWidth - Name:length - LeftPadding
-			Stdout:write('  \e[7m \e[32m{Index, IndexFormat}:\e[39m{LeftPadding * " "}\e[4m{Name}\e[24m{RightPadding - Cost:length * " "}\e[33m{Cost}\e[39m \e[27m\n')
+			Stdout:write('  \e[7m \e[42m{Index, IndexFormat}:\e[49m{LeftPadding * " "}\e[4m{Name}\e[24m{RightPadding - Cost:length * " "}\e[43m{Cost}\e[49m \e[27m\n')
 		end
 		if Events:length > 0 then
 			Stdout:write(' \n')
