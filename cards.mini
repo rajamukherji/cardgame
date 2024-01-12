@@ -11,8 +11,8 @@ export: class: work(card)
 meth :blocked(Card: work) Card::Cost > current("energy") and "insufficient energy"
 
 export: class: task(work)
-meth :name(Card: task) 'Task ➙ {Card::Goal}'
-meth :description(Card: task) 'A task requiring {Card::Skill} skill.'
+meth :name(Card: task) '{Card:type:title} Task ➙ {Card::Goal}'
+meth :description(Card: task) 'A {Card:type} task requiring {Card::Skill} skill.'
 meth :play(Card: task) do
 	decrease("energy", Card::Cost)
 	remove(Card)
@@ -20,6 +20,16 @@ end
 meth :remove(Card: task) do
 	progress(Card::Goal, Card::Index)
 end
+meth :type(Card: task) 'general'
+
+export: class: coding(task)
+meth :type(Card: coding) 'coding'
+
+export: class: modelling(task)
+meth :type(Card: modelling) 'modelling'
+
+export: class: admin(task)
+meth :type(Card: admin) 'admin'
 
 export: class: person(card)
 meth :blocked(Card: person) nil
@@ -29,7 +39,7 @@ meth :name(Card: developer) 'Developer-{Card::Skill}'
 meth :description(Card: developer) 'A developer with {Card::Skill} skill.'
 meth :play(Card: developer) do
 	let Skill := Card::Skill + if current("energy") >= 2 then 1 else 0 end
-	let Tasks := list(Hand ->? fun(Card) Card in task and Card::Skill <= Skill)
+	let Tasks := list(Hand ->? fun(Card) Card in coding and Card::Skill <= Skill)
 	let Meet := card({"Name" is "Meet 1:1", "Description" is "Increase skill by 1."})
 	if current("energy") >= 1 then Tasks:put(Meet) end
 	let Task := choose("Select task to complete", Tasks; Task) do
@@ -46,7 +56,7 @@ meth :play(Card: developer) do
 		if Task::Skill > Card::Skill then
 			decrease("energy", 2)
 			Card::Skill := old + 1
-		end 
+		end
 		remove(Task)
 	end
 	discard(Card)
@@ -68,7 +78,8 @@ meth :play(Card: project) do
 	decrease("energy", Card::Cost)
 	let Project := LastGoal:inc
 	let Tasks := list(1 .. Card::Size; I) do
-		discard(task({"Cost" is 1, "Skill" is 3, "Goal" is Project, "Index" is I}))
+		let Type := if random(real) < 0.2 then modelling else coding end
+		discard(Type({"Cost" is 1, "Skill" is 3, "Goal" is Project, "Index" is I}))
 	end
 	goal(Project, set(1 .. Card::Size), solution({"Value" is Card::Size}))
 	remove(Card)
@@ -99,7 +110,7 @@ meth :name(Card: demo) 'Demo-{Card::Value}'
 meth :description(Card: demo) 'A demo generating {Card::Value} influence / projects.'
 meth :blocked(Card: demo) if some(Hand, _ in audience) then nil else "lack of audience" end
 meth :play(Card: demo) do
-	let Audience := choose("Select audience for demo", Hand ->? fun(Card) Card in audience)
+	let Audience := choose("Select audience for demo", Hand & (DrawPile limit 3) ->? fun(Card) Card in audience)
 	Audience:demo(Card)
 end
 
@@ -135,9 +146,9 @@ meth :play(Card: customer) do
 	end
 end
 meth :demo(Card: customer, Demo: demo) do
+	discard(project({"Cost" is 1, "Size" is Demo::Value}))
 	remove(Demo)
 	discard(Card)
-	discard(project({"Cost" is 1, "Size" is Demo::Value}))
 end
 
 export: class: data(work)
@@ -145,7 +156,11 @@ meth :name(Card: data) 'Data-{Card::Size}'
 meth :description(Card: data) 'Data of size {Card::Size}.'
 meth :play(Card: data) do
 	decrease("energy", Card::Cost)
-	discard(model({"Value" is Card::Size}))
+	let Project := LastGoal:inc
+	let Tasks := list(1 .. Card::Size; I) do
+		discard(modelling({"Cost" is 1, "Skill" is 3, "Goal" is Project, "Index" is I}))
+	end
+	goal(Project, set(1 .. Card::Size), model({"Value" is Card::Size}))
 	remove(Card)
 end
 
@@ -164,13 +179,31 @@ export: class: scientist(person)
 meth :name(Card: scientist) 'Data Scientist-{Card::Skill}'
 meth :description(Card: scientist) 'A data scientist with {Card::Skill} skill.'
 meth :play(Card: scientist) do
-	let Other := choose("Select data target", Hand ->? fun(Card) Card in customer or Card in data)
-	if Other in customer then
-		discard(data({"Cost" is Other::Value, "Size" is Other::Value}))
-		discard(Other)
-	elseif Other in data then
-		discard(model({"Value" is Other::Size}))
-		remove(Other)
+	let Skill := Card::Skill + if current("energy") >= 2 then 1 else 0 end
+	let Tasks := list(Hand ->? fun(Card) Card in modelling and Card::Skill <= Skill):grow(Hand ->? fun(Card) Card in customer)
+	let Meet := card({"Name" is "Meet 1:1", "Description" is "Increase skill by 1."})
+	if current("energy") >= 1 then Tasks:put(Meet) end
+	let Task := choose("Select task to complete", Tasks; Task) do
+		if Task = Meet then
+			"■"
+		elseif Task in modelling and Task::Skill > Card::Skill then
+			"■■"
+		elseif Task in customer then
+			""
+		end
+	end
+	if Task = Meet then
+		decrease("energy", 1)
+		Card::Skill := old + 1
+	elseif Task in modelling then
+		if Task::Skill > Card::Skill then
+			decrease("energy", 2)
+			Card::Skill := old + 1
+		end
+		remove(Task)
+	elseif Task in customer  then
+		discard(data({"Cost" is Task::Value + 1, "Size" is Task::Value + 1}))
+		discard(Task)
 	end
 	discard(Card)
 end
@@ -182,7 +215,7 @@ meth :play(Card: idea) do
 	decrease("energy", Card::Cost)
 	let Demo := LastGoal:inc
 	let Tasks := list(1 .. Card::Size; I) do
-		discard(task({"Cost" is 1, "Skill" is 3, "Goal" is Demo, "Index" is I}))
+		discard(coding({"Cost" is 1, "Skill" is 3, "Goal" is Demo, "Index" is I}))
 	end
 	goal(Demo, set(1 .. Card::Size), demo({"Value" is Card::Size}))
 	remove(Card)
@@ -240,7 +273,7 @@ meth :play(Card: plan) do
 	decrease("energy", Card::Cost)
 	let Goal := LastGoal:inc
 	for I in 1 .. Card::Size do
-		discard(task(Card::Task + {"Goal" is Goal, "Index" is I}))
+		discard(coding(Card::Task + {"Goal" is Goal, "Index" is I}))
 	end
 	goal(Goal, set(1 .. Card::Size), Card::Goal(Card::Details))
 	discard(Card)
@@ -292,26 +325,14 @@ meth :name(Card: retrospective) 'Retrospective'
 meth :description(Card: retrospective) 'Team retrospective. Uses influence to remove overhead and practioners.'
 meth :blocked(Card: retrospective) nil
 meth :play(Card: retrospective) do
+	decrease("energy", Card::Cost)
 	let Deck := DrawPile & Hand & DiscardPile
-	loop		
+	loop
 		let Annoyance := while choose("Select annoyance to remove", Deck ->? fun(Card) Card in annoyance and Card::Influence <= current("influence"), ::Influence)
 		decrease("influence", Annoyance::Influence)
 		remove(Annoyance)
 	end
 	discard(Card)
-end
-
-export: class: event(card)
-meth :name(Card: event) 'Event'
-meth :description(Card: event) 'Event.'
-meth :draw(Card: event) do
-	log('\e[33mEvent\e[0m \e[4m{Card:name}\e[0m played from hand.')
-	discard(Card)
-	for (Prob, Type, Details) in Card::Events do
-		if random(real) < Prob then
-			draw(Type(Details))
-		end
-	end
 end
 
 export: class: review(card)
@@ -325,3 +346,49 @@ meth :play(Card: review) do
 	discard(Card)
 end
 
+export: class: event(card)
+meth :name(Card: event) 'Event'
+meth :description(Card: event) 'Event.'
+meth :draw(Card: event) do
+	log('\e[33mPlayed\e[0m \e[4m{Card:name}\e[0m from hand.')
+	discard(Card)
+	for (Prob, Type, Details) in Card::Events do
+		if random(real) < Prob then
+			draw(Type(Details))
+		end
+	end
+end
+
+export: class: choice(:name, :description, :cost)
+
+export: class: poacher(card)
+meth :name(Card: poacher) 'Poacher'
+meth :description(Card: poacher) 'Poacher.'
+meth :draw(Card: poacher) do
+	log('\e[33mPlayed\e[0m \e[4m{Card:name}\e[0m from hand.')
+	let Candidates := list((Hand & DrawPile) ->? fun(Card) Card in developer or Card in scientist)
+	if Candidates:length = 0 then
+		discard(Card)
+	else
+		let Candidate := random(Candidates)
+		if Candidate::Skill div 2 > current("influence") then
+			remove(Card)
+			remove(Candidate)
+		else
+			let Choices := [
+				choice("Do Nothing", "Do nothing", ""),
+				choice("Use Influence", 'Use {Candidate::Skill} influence to retain.', '{Candidate::Skill div 2}')
+			]
+			let Choice := choose('A poacher is trying to recruiter {Candidate:name}', Choices, :cost)
+			if Choice = last(Choices) then
+				log('\e[33mCandidate\e[0m \e[4m{Candidate:name}\e[0m stayed.')
+				decrease("influence", Candidate::Skill div 2)
+				discard(Card)
+			else
+				log('\e[33mCandidate\e[0m \e[4m{Candidate:name}\e[0m left.')
+				remove(Card)
+				remove(Candidate)
+			end
+		end
+	end
+end

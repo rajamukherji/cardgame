@@ -43,12 +43,13 @@ DrawPile:put(
 		"Size" is 3,
 		"Order" is cards::coffee
 	}),
-	cards::retrospective({}),
+	cards::retrospective({"Cost" is 1}),
 	cards::practioner({"Influence" is 10}),
 	cards::recruiter({"Influence" is 2}),
 	cards::event({"Events" is [
-		(0.1, cards::training, {"Cost" is 2}),
-		(0.05, cards::practioner, {"Influence" is 10})
+		(0.2, cards::training, {"Cost" is 2}),
+		(0.1, cards::practioner, {"Influence" is 10}),
+		(0.1, cards::poacher, {})
 	]}),
 	cards::review({"Value" is 3}),
 	cards::scientist({"Skill" is 3})
@@ -160,6 +161,7 @@ Stdout:write("\e[?1046h\e[?1049h\e[?1000h\e[?1006h")
 start(
 	fun(Day) do
 		Counters["energy"] := Counters["daily_energy"]
+		ret Counters["draw_count"]
 	end,
 	fun(Day) do
 		let Title := 'Day {Day}'
